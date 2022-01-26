@@ -16,7 +16,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Example of a call to a native method
-        binding.sampleText.text = stringFromJNI()
+        binding.sampleText.text = GetFFmpegVersion()
     }
 
     /**
@@ -25,10 +25,16 @@ class MainActivity : AppCompatActivity() {
      */
     external fun stringFromJNI(): String
 
+    public fun GetFFmpegVersion():String{
+        return native_GetFFmpegVersion();
+    }
+
+    external fun native_GetFFmpegVersion() : String
+
     companion object {
         // Used to load the 'myapplication' library on application startup.
         init {
-            System.loadLibrary("myapplication")
+            System.loadLibrary("learn-ffmpeg")
         }
     }
 }
