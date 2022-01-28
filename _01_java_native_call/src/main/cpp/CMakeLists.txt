@@ -40,9 +40,20 @@ find_library( # Sets the name of the path variable.
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 
+set(native-libs
+        android
+        EGL
+        GLESv3
+        OpenSLES
+        log
+        m
+        z
+        )
+
 target_link_libraries( # Specifies the target library.
         java_native_call
 
+        ${native-libs}
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib})

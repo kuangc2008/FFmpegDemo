@@ -8,6 +8,8 @@ class NativeLib {
      */
     external fun stringFromJNI(): String
 
+    external fun javaToc(string : String): Unit
+
     companion object {
         // Used to load the 'java_native_call' library on application startup.
         init {

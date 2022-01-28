@@ -2,6 +2,7 @@ package com.example.myapplication
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.TextView
 import com.example.myapplication.databinding.ActivityMainBinding
 import com.kc.java_native_call.NativeLib
@@ -24,6 +25,11 @@ class MainActivity : AppCompatActivity() {
 
         // java native call
         binding.sampleText.text = NativeLib().stringFromJNI()
+
+        Log.i("kcc", "1111");
+        NativeLib().javaToc("哈哈哈哈哈")
+        Log.i("kcc", "2222");
+
 
     }
 
