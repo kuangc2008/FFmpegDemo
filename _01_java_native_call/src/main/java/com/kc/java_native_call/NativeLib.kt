@@ -13,6 +13,16 @@ class NativeLib {
 
     external fun accessField(): Unit
 
+    external fun accessMethod(): Unit
+
+    fun onCallBb() : Int {
+        return 1000
+    }
+
+    fun onCallCC(arg : String) : String {
+        return arg + "_end"
+    }
+
     companion object {
         // Used to load the 'java_native_call' library on application startup.
         init {
@@ -20,5 +30,9 @@ class NativeLib {
         }
 
         var a : Int = 333;
+
+        fun onCallAA() : String {
+            return "aaa";
+        }
     }
 }

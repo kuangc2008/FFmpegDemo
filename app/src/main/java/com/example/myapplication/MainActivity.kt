@@ -25,7 +25,8 @@ class MainActivity : AppCompatActivity() {
 
         Log.i("kcc", "1111");
 //        NativeLib().javaToc("哈哈哈哈哈")
-        NativeLib().accessField();
+//        NativeLib().accessField();
+        NativeLib().accessMethod();
         Log.i("kcc", "2222");
 
 

@@ -77,3 +77,54 @@ extern "C" JNIEXPORT void JNICALL
 
 
 }
+
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_kc_java_1native_1call_NativeLib_accessMethod(JNIEnv* env,
+                                                     jobject obj) {
+    jclass  clazz;
+    clazz = (*env).GetObjectClass(obj);
+
+    jmethodID instanceMethodId;
+
+
+    __android_log_print(ANDROID_LOG_DEBUG, "kcc","staticA : 1111");
+    instanceMethodId = (*env).GetMethodID(clazz, "onCallBb", "()I");
+    __android_log_print(ANDROID_LOG_DEBUG, "kcc","staticA : 2222");
+
+    jint instanceMethodResult;
+    instanceMethodResult = (*env).CallIntMethod(obj, instanceMethodId);
+    __android_log_print(ANDROID_LOG_DEBUG, "kcc","staticA : 33333");
+    __android_log_print(ANDROID_LOG_DEBUG, "kcc","static result : %d", instanceMethodResult);
+
+
+
+
+    __android_log_print(ANDROID_LOG_DEBUG, "kcc","staticA : 4444");
+    instanceMethodId = (*env).GetMethodID(clazz, "onCallCC", "(Ljava/lang/String;)Ljava/lang/String;");
+    __android_log_print(ANDROID_LOG_DEBUG, "kcc","staticA : 5555");
+
+    jstring stringResult;
+    jstring aaa = env->NewStringUTF("lalalalalal");;
+    stringResult = static_cast<jstring>((*env).CallObjectMethod(obj, instanceMethodId, aaa));
+    __android_log_print(ANDROID_LOG_DEBUG, "kcc","staticA : 6666");
+
+    const char* str;
+    jboolean isCopy;
+
+    str = (*env).GetStringUTFChars(stringResult , &isCopy);
+    if ( 0 != str) {
+        __android_log_print(ANDROID_LOG_DEBUG, "kcc","static result : %s", str);
+        if (JNI_TRUE == isCopy) {
+            __android_log_print(ANDROID_LOG_DEBUG, "kcc","c string is a copy of the java string");
+        } else {
+            __android_log_print(ANDROID_LOG_DEBUG, "kcc","c string points to actual string");
+
+        }
+    }
+
+
+
+
+
+}
