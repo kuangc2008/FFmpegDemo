@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
 import com.example.myapplication.databinding.ActivityMainBinding
+import com.kc.test.TestUtil
 
 class MainActivity : AppCompatActivity() {
 
@@ -17,6 +18,8 @@ class MainActivity : AppCompatActivity() {
 
         // Example of a call to a native method
         binding.sampleText.text = GetFFmpegVersion()
+
+        TestUtil.test()
     }
 
     /**
