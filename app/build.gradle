@@ -54,7 +54,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
     implementation project(path: ':app:test')
     implementation project(path: ':test2')
-//    implementation 'com.github.kuangc2008:FFmpegDemo:1.0.1'
+//    implementation 'com.github.kuangc2008:FFmpegDemo:1.0.4'
 
 
     testImplementation 'junit:junit:4.+'
