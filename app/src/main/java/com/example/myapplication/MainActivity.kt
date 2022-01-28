@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
 import com.example.myapplication.databinding.ActivityMainBinding
+import com.kc.java_native_call.NativeLib
 import com.kc.test.TestUtil
 import com.kc.test2.Test2Util
 
@@ -18,10 +19,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Example of a call to a native method
-        binding.sampleText.text = GetFFmpegVersion()
+        binding.sampleText.text = stringFromJNI()
 
-        TestUtil.test()
-        Test2Util.test()
+
+        // java native call
+        binding.sampleText.text = NativeLib().stringFromJNI()
+
     }
 
     /**
