@@ -49,3 +49,31 @@ Java_com_kc_java_1native_1call_NativeLib_javaToc(
     (*env).ReleaseStringUTFChars(javaString, str);
 
 }
+
+
+extern "C" JNIEXPORT void JNICALL
+        Java_com_kc_java_1native_1call_NativeLib_accessField(JNIEnv* env,
+                                                             jobject obj) {
+    jclass  clazz;
+    clazz = (*env).GetObjectClass(obj);
+
+    jfieldID  instanceFieldId;
+    instanceFieldId = (*env).GetFieldID(clazz, "b", "I");
+
+    jint instanceB;
+    instanceB = reinterpret_cast<jint>((*env).GetIntField(obj, instanceFieldId));
+
+    __android_log_print(ANDROID_LOG_DEBUG, "kcc","instanceB : %d", instanceB);
+
+    jfieldID  staticFieldId;
+    staticFieldId = (*env).GetStaticFieldID(clazz, "a", "I");
+
+    jint  staticA;
+    staticA = (*env).GetStaticIntField(clazz, staticFieldId);
+
+
+    __android_log_print(ANDROID_LOG_DEBUG, "kcc","staticA : %d", staticA);
+
+
+
+}

@@ -3,11 +3,8 @@ package com.example.myapplication
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.widget.TextView
 import com.example.myapplication.databinding.ActivityMainBinding
 import com.kc.java_native_call.NativeLib
-import com.kc.test.TestUtil
-import com.kc.test2.Test2Util
 
 class MainActivity : AppCompatActivity() {
 
@@ -27,7 +24,8 @@ class MainActivity : AppCompatActivity() {
         binding.sampleText.text = NativeLib().stringFromJNI()
 
         Log.i("kcc", "1111");
-        NativeLib().javaToc("哈哈哈哈哈")
+//        NativeLib().javaToc("哈哈哈哈哈")
+        NativeLib().accessField();
         Log.i("kcc", "2222");
 
 
