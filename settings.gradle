@@ -4,7 +4,10 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         jcenter() // Warning: this repository is going to shut down soon
+        maven { url 'https://jitpack.io' }
+
     }
 }
 include ':app'
 include ':app:test'
+include ':test2'

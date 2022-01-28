@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.TextView
 import com.example.myapplication.databinding.ActivityMainBinding
 import com.kc.test.TestUtil
+import com.kc.test2.Test2Util
 
 class MainActivity : AppCompatActivity() {
 
@@ -20,6 +21,7 @@ class MainActivity : AppCompatActivity() {
         binding.sampleText.text = GetFFmpegVersion()
 
         TestUtil.test()
+        Test2Util.test()
     }
 
     /**
