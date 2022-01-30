@@ -1,5 +1,7 @@
 package com.kc.java_native_call
 
+import java.lang.NullPointerException
+
 class NativeLib {
 
     var b : Int = 111
@@ -14,6 +16,12 @@ class NativeLib {
     external fun accessField(): Unit
 
     external fun accessMethod(): Unit
+
+    external fun exceptionDeal() : Unit
+
+    fun throwingMethod () {
+        throw NullPointerException()
+    }
 
     fun onCallBb() : Int {
         return 1000

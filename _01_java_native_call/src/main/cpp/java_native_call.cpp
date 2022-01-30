@@ -123,8 +123,32 @@ Java_com_kc_java_1native_1call_NativeLib_accessMethod(JNIEnv* env,
         }
     }
 
+    (*env).ReleaseStringUTFChars(stringResult, str);
+}
 
 
 
 
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_kc_java_1native_1call_NativeLib_exceptionDeal(JNIEnv* env,
+                                                      jobject obj) {
+    jthrowable  ex;
+
+
+    jclass  clazz;
+    clazz = (*env).GetObjectClass(obj);
+
+    jmethodID throwMethodId;
+    throwMethodId = (*env).GetMethodID(clazz, "throwingMethod", "()V");
+
+    (*env) . CallVoidMethod(obj, throwMethodId);
+
+    ex = (*env) . ExceptionOccurred();
+
+    if (0 != ex) {
+        (*env) . ExceptionClear();
+
+        __android_log_print(ANDROID_LOG_DEBUG, "kcc","Exception handle ");
+    }
 }
