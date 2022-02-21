@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.util.Log
 import com.example.myapplication.databinding.ActivityMainBinding
 import com.kc.java_native_call.NativeLib
+import coroutine.CoroutineTest1
+import coroutine.CoroutineTest2
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,6 +32,9 @@ class MainActivity : AppCompatActivity() {
         NativeLib().exceptionDeal()
         Log.i("kcc", "2222");
 
+
+
+        CoroutineTest2().main()
 
     }
 

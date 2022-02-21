@@ -144,6 +144,7 @@ Java_com_kc_java_1native_1call_NativeLib_exceptionDeal(JNIEnv* env,
 
     (*env) . CallVoidMethod(obj, throwMethodId);
 
+    // 如果不捕获，则有空指针，会直接退出
     ex = (*env) . ExceptionOccurred();
 
     if (0 != ex) {
