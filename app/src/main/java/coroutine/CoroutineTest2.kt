@@ -1,29 +1,39 @@
 package coroutine
 
 import android.util.Log
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 class CoroutineTest2 {
 
     fun main() {
+        // 1
         val runBlocking = runBlocking {
             Log.i("kcc", "runBlocking")
+
+            Thread.sleep(2000)
+
+            Log.i("kcc", "runBlocking 2 ")
             41
         }
+        Log.i("kcc", "abc");
         Log.i("kcc", "block ${runBlocking}")
-        val launch = GlobalScope.launch {
-            Log.i("kcc", "222222")
+
+
+
+
+        //2
+        GlobalScope.launch{
+            Log.i("kcc", "start 1111: hehe " )
+
+            for (index in 1 until 10) {
+                launch (Dispatchers.Main) {
+                    Log.i("kcc", "start 1111:  ${index}" )
+                }
+            }
         }
-        Log.i("kcc", "global launch ${launch}")
-        val async = GlobalScope.async {
-            Log.i("kcc", "3333")
-            "return"
-        }
-        Log.i("kcc", "rturn: ${async}")
+
+
 
     }
 
