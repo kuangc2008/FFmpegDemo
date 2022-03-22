@@ -55,6 +55,8 @@ dependencies {
     implementation project(path: ':app:test')
     implementation project(path: ':test2')
     implementation project(path: ':_01_java_native_call')
+    implementation project(path: ':uiwatch')
+
 //    implementation 'com.github.kuangc2008:FFmpegDemo:1.0.4'
 
 

@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import com.example.myapplication.databinding.ActivityMainBinding
 import com.kc.java_native_call.NativeLib
+import com.kc.uiwatch.UiWatcher
 import coroutine.CoroutineTest1
 import coroutine.CoroutineTest2
 
@@ -35,6 +36,16 @@ class MainActivity : AppCompatActivity() {
 
 
         CoroutineTest2().main()
+
+        UiWatcher.getInstance(application)
+            .cacheSize(10, 17)
+            .listen {
+
+            }
+            .
+                startWatch()
+
+
 
     }
 
