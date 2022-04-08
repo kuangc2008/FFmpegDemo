@@ -1,5 +1,6 @@
 package com.kc.test
 
+import android.view.View
 import androidx.core.app.Person
 import org.junit.Test
 
@@ -49,4 +50,95 @@ class Kotlin1 {
         println(list2)
         println(people)
     }
+
+
+    @Test
+    fun test3() {
+        val arrayOf = arrayOf(1, 2, 3, 4, 5)
+
+        for (i in 0..arrayOf.size - 1) {
+            println(arrayOf[i])
+        }
+
+        for (i in 0 until arrayOf.size) {
+            println(arrayOf[i])
+        }
+
+        for (i in 0..arrayOf.lastIndex) {
+            println(arrayOf[i])
+        }
+
+        for (i in arrayOf.indices) {
+            println(arrayOf[i])
+        }
+
+        for (arg in arrayOf) {
+            println(arg)
+        }
+
+        arrayOf.forEach {
+            println(it)
+        }
+
+        arrayOf.forEachIndexed { index, arg ->
+            println("$index: $arg")
+        }
+
+        for ( (index, arg) in  arrayOf.withIndex()) {
+            println("$index: $arg")
+        }
+
+        val intArray = intArrayOf(1, 2, 3, 4, 5)
+        val withIndex = intArray.withIndex()
+    }
+
+    public interface OnClickListener {
+        fun onClick(value : Int)
+    }
+
+    public class Button {
+        fun setListener(listener : OnClickListener) {
+            listener.onClick(1)
+        }
+
+//        fun setListener(listener: (value : Int) -> Unit) {
+//            listener.invoke(3)
+//        }
+    }
+
+
+    @Test
+    fun test4() {
+        val button = Java1.Button2()
+        button.setListener { value -> println(value) }
+//        button.setListener {
+//        }
+    }
+
+    @Test
+    fun test5() {
+        a()
+
+        b()
+    }
+
+    companion object {
+        const val a = 6
+        @JvmStatic
+        var b = 7
+        @JvmField
+        var c = 8
+
+
+        fun a() {
+
+        }
+    }
 }
+
+fun b() {
+
+}
+
+
+
