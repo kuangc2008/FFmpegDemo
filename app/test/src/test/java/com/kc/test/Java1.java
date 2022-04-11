@@ -2,6 +2,8 @@ package com.kc.test;
 
 import org.junit.Test;
 
+import kotlin.jvm.functions.Function2;
+
 public class Java1 {
 
 
@@ -22,6 +24,17 @@ public class Java1 {
         Kotlin1.Companion.a();
 
         Kotlin1Kt.b();
+    }
+
+    @Test
+    public void test6() {
+        Kotlin3 a = new Kotlin3();
+        a.setAdd(new Function2<Integer, Integer, Integer>() {
+            @Override
+            public Integer invoke(Integer integer, Integer integer2) {
+                return null;
+            }
+        });
     }
 }
 
