@@ -23,4 +23,47 @@ class Kotlin3 {
 
 
 
+    fun test2() {
+        val dependency = DependencyHandler()
+        dependency.compile("androidx.core:core-ktx:1.6.0", "b")
+
+        dependency.invoke {
+            compile("androidx.core:core-ktx:1.6.0", "a")
+        }
+
+        dependency{
+            compile("androidx.core:core-ktx:1.6.0", "c")
+        }
+
+    }
+
+
+
+    class DependencyHandler{
+        //编译库
+        fun compile(libString: String, libString2: String){
+            println("add $libString $libString2")
+        }
+
+        // 接受者为Lambda表达式
+        operator fun invoke(body: DependencyHandler.() -> Unit){
+            body()
+        }
+    }
+
+    @Test
+    fun  test3() {
+        object : Runnable {
+            override fun run() {
+                println("aaaa")
+            }
+        }
+
+        java.lang.Runnable {
+            println("aaaa")
+        }
+
+        Thread.sleep(1000)
+    }
+
 }
