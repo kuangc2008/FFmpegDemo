@@ -1,5 +1,6 @@
 package com.kc.test
 
+import androidx.recyclerview.widget.RecyclerView
 import org.junit.Test
 import kotlin.reflect.KProperty
 
@@ -68,5 +69,5 @@ public interface BBBB {
 
 // 属性代理3
 class Demo1 {
-    val a by lazy { 1+2+3+4+5 }
+    val a by lazy(LazyThreadSafetyMode.PUBLICATION) { 1+2+3+4+5 }
 }
