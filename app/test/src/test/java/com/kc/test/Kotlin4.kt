@@ -113,14 +113,14 @@ class Kotlin4 {
         )
     }
 
-    class CustomView3 constructor(context: Context) : View(context) {
-        constructor(context: Context, attributes: AttributeSet? = null) : super(context, attributes)
-        constructor(context: Context, attributes: AttributeSet? = null, defStyleAttr: Int) : super(
-            context,
-            attributes,
-            defStyleAttr
-        )
-    }
+//    class CustomView3 constructor(context: Context) : View(context) {
+//        constructor(context: Context, attributes: AttributeSet? = null) : super(context, attributes)
+//        constructor(context: Context, attributes: AttributeSet? = null, defStyleAttr: Int) : super(
+//            context,
+//            attributes,
+//            defStyleAttr
+//        )
+//    }
 
     // 5
     lateinit var mContext : String
