@@ -1,5 +1,7 @@
 package com.kc.test;
 
+import android.util.Log;
+
 import org.junit.Test;
 
 import kotlin.jvm.functions.Function2;
@@ -35,6 +37,11 @@ public class Java1 {
                 return null;
             }
         });
+
+        Kotlin6 b = new Kotlin6();
+        Function2<Integer, Integer, Integer> sum = b.getSum();
+        Integer invoke = sum.invoke(3, 4);
+        Log.i("kcc", "invoke：" + invoke);
     }
 }
 

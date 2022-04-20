@@ -13,6 +13,9 @@ import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.createCoroutine
 import kotlin.reflect.KProperty
 
 class Kotlin5 {
@@ -75,5 +78,19 @@ class Kotlin5 {
         mainExecutor.post(block)
     }
 
+
+    @Test
+    fun test3() {
+        val continuation = suspend {
+            println("In Coroutine.")
+            5
+        }.createCoroutine(object : Continuation<Int> {
+            override fun resumeWith(result: Result<Int>) {
+                println("Coroutine End: $result")
+            }
+
+            override val context = EmptyCoroutineContext
+        })
+    }
 
 }
