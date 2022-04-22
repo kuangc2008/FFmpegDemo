@@ -1,4 +1,4 @@
-package com.kc.test
+package com.kc.test.basic
 
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.memberFunctions

@@ -1,6 +1,5 @@
-package com.kc.test
+package com.kc.test.basic
 
-import android.view.View
 import androidx.core.app.Person
 import org.junit.Test
 

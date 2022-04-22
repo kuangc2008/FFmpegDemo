@@ -1,7 +1,6 @@
-package com.kc.test
+package com.kc.test.basic
 
 import org.junit.Test
-import kotlin.reflect.KProperty
 
 class Kotlin3 {
 

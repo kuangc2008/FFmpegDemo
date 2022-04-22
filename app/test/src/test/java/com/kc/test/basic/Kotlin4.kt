@@ -1,14 +1,11 @@
-package com.kc.test
+package com.kc.test.basic
 
 import android.content.Context
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
-import androidx.recyclerview.widget.RecyclerView
 import org.junit.Test
 import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.contract
-import kotlin.reflect.KProperty
 
 class Kotlin4 {
 
@@ -52,7 +49,7 @@ class Kotlin4 {
 
     class Pro3 private constructor(){
         companion object {
-            var singleton:Pro3? = null
+            var singleton: Pro3? = null
 
             fun getInstance() : Pro3 {
                 if (singleton == null) {
@@ -87,7 +84,7 @@ class Kotlin4 {
                 }
 
             @Synchronized
-            fun get(): SingletonDemo{
+            fun get(): SingletonDemo {
                 //细心的小伙伴肯定发现了，这里不用getInstance作为为方法名，是因为在伴生对象声明时，内部已有getInstance方法，所以只能取其他名字
                 return instance!!
             }

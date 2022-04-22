@@ -1,6 +1,5 @@
-package com.kc.test
+package com.kc.test.basic
 
-import androidx.recyclerview.widget.RecyclerView
 import org.junit.Test
 import kotlin.reflect.KProperty
 
