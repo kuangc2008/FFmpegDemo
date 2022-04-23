@@ -1,6 +1,7 @@
 package com.github.kc.brv
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.util.NoSuchPropertyException
 import android.view.LayoutInflater
 import android.view.View
@@ -168,7 +169,8 @@ open class BindingAdapter : RecyclerView.Adapter<BindingAdapter.BindingViewHolde
         if (Modifier.isInterface(M::class.java.modifiers)) {
 //            M::class.java.add
         } else {
-            typePool[M::class.java] = {
+            typePool[M::class.java] = {  position ->
+                Log.i("kcc", "position:: $position")
                 layout
             }
         }
