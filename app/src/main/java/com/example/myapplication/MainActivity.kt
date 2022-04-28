@@ -20,32 +20,32 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Example of a call to a native method
-        binding.sampleText.text = stringFromJNI()
+        binding.sampleText.text = GetFFmpegVersion()
 
 
         // java native call
-        binding.sampleText.text = NativeLib().stringFromJNI()
+//        binding.sampleText.text = NativeLib().stringFromJNI()
 
         Log.i("kcc", "1111");
 //        NativeLib().javaToc("哈哈哈哈哈")
 //        NativeLib().accessField();
 //        NativeLib().accessMethod();
-        NativeLib().exceptionDeal()
+//        NativeLib().exceptionDeal()
         Log.i("kcc", "2222");
 
 
 
-        CoroutineTest2().main()
-
-        UiWatcher.getInstance(application)
-            .cacheSize(10, 17)
-            .listen {
-
-            }
-            .
-                startWatch()
-
-
+//        CoroutineTest2().main()
+//
+//        UiWatcher.getInstance(application)
+//            .cacheSize(10, 17)
+//            .listen {
+//
+//            }
+//            .
+//                startWatch()
+//
+//
 
     }
 
