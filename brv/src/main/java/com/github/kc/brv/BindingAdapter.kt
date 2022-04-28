@@ -131,15 +131,15 @@ open class BindingAdapter : RecyclerView.Adapter<BindingAdapter.BindingViewHolde
         val model = getModel<Any>(position)
         val modelClass: Class<*> = model.javaClass
         return (typePool[modelClass]?.invoke(model, position)
-//            ?:
-//            interfacePool?.run {
-//                for (interfaceType in this) {
-//                    if (interfaceType.key.isAssignableFrom(modelClass)) {
-//                        return@run interfaceType.value.invoke(model, position)
-//                    }
-//                }
-//                null
-//            }
+            ?:
+            interfacePool?.run {
+                for (interfaceType in this) {
+                    if (interfaceType.key.isAssignableFrom(modelClass)) {
+                        return@run interfaceType.value.invoke(model, position)
+                    }
+                }
+                null
+            }
         ?: throw NoSuchPropertyException("please add item model type : addType<${model.javaClass.name}>(R.layout.item)"))
     }
 
@@ -164,10 +164,11 @@ open class BindingAdapter : RecyclerView.Adapter<BindingAdapter.BindingViewHolde
 
     // 类型池
     val typePool = mutableMapOf<Class<*>, Any.(Int) -> Int>()
+    var interfacePool : MutableMap<Class<*>, Any.(Int) -> Int>? = null
 
     inline fun <reified M> addType(@LayoutRes layout : Int) {
         if (Modifier.isInterface(M::class.java.modifiers)) {
-//            M::class.java.add
+            M::class.java.addInterfaceType { layout }
         } else {
             typePool[M::class.java] = {  position ->
                 Log.i("kcc", "position:: $position")
@@ -177,7 +178,9 @@ open class BindingAdapter : RecyclerView.Adapter<BindingAdapter.BindingViewHolde
     }
 
     fun Class<*>.addInterfaceType(block : Any.(Int) -> Int) {
-
+        (interfacePool ?: mutableMapOf<Class<*>, Any.(Int) -> Int>().also {
+            interfacePool = it
+        })[this]  = block
     }
 
 
@@ -287,6 +290,8 @@ open class BindingAdapter : RecyclerView.Adapter<BindingAdapter.BindingViewHolde
 //            }
             viewDataBinding?.executePendingBindings()
         }
+
+        inline fun <reified M> getModelOrNull(): M? = _data as? M
 
         /**
          * 返回数据模型

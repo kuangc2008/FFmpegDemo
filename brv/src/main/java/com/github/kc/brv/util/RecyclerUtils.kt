@@ -20,6 +20,7 @@ import android.widget.RemoteViews
 import androidx.recyclerview.widget.RecyclerView
 import com.github.kc.brv.BindingAdapter
 import com.github.kc.brv.layoutmanager.HoverLinearLayoutManager
+import java.lang.NullPointerException
 
 fun RecyclerView.linear(
     @RecyclerView.Orientation orientation: Int = RecyclerView.VERTICAL,
@@ -40,3 +41,12 @@ fun RecyclerView.setup(action : BindingAdapter.(RecyclerView) -> Unit) : Binding
     this.adapter = adapter
     return adapter
 }
+
+val RecyclerView.bindingAdapter
+    get() = adapter as BindingAdapter ?: throw NullPointerException("no binder")
+
+var RecyclerView.models
+    get() = bindingAdapter.models
+    set(value) {
+        bindingAdapter.models = value
+    }
