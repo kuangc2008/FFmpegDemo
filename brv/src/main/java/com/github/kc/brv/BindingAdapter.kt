@@ -220,6 +220,14 @@ open class BindingAdapter : RecyclerView.Adapter<BindingAdapter.BindingViewHolde
 
     // </editor-fold>
 
+    fun onClick(@IdRes vararg id: Int, block: BindingViewHolder.(viewId: Int) -> Unit) {
+        for (i in id) {
+            clickListeners[i] = Pair(block, false)
+        }
+        onClick = block
+    }
+
+
 
     private val clickListeners =  HashMap<Int, Pair< (BindingViewHolder.(Int) -> Unit)?, Boolean>>()
     fun @receiver:androidx.annotation.IdRes Int.onClick(listener : BindingViewHolder.(viewId : Int) -> Unit) {
