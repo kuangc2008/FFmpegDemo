@@ -1,6 +1,7 @@
 package com.github.kc.brv
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.util.Log
 import android.util.NoSuchPropertyException
 import android.view.LayoutInflater
@@ -13,6 +14,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
 import com.github.kc.brv.item.ItemBind
+import com.github.kc.brv.item.ItemPosition
 import com.github.kc.brv.listener.throttleClick
 import com.github.kc.brv.util.BRV
 import java.lang.reflect.Modifier
@@ -241,6 +243,8 @@ open class BindingAdapter : RecyclerView.Adapter<BindingAdapter.BindingViewHolde
         lateinit var _data: Any private set
         private var viewDataBinding: ViewDataBinding? = null
 
+        val modelPosition get() = layoutPosition - headerCount
+
         constructor(itemView: View) : super(itemView)
 
         constructor(viewDataBinding: ViewDataBinding) : super(viewDataBinding.root) {
@@ -280,9 +284,9 @@ open class BindingAdapter : RecyclerView.Adapter<BindingAdapter.BindingViewHolde
 //                it.onBindViewHolder(rv!!, adapter, this, adapterPosition)
 //            }
 
-//            if (model is ItemPosition) {
-//                model.itemPosition = modelPosition
-//            }
+            if (model is ItemPosition) {
+                model.itemPosition = modelPosition
+            }
 
             if (model is ItemBind) {
                 model.onBind(this)
