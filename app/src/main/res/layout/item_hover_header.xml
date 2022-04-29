@@ -16,28 +16,20 @@
 
 
 
-    <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/item"
         android:layout_width="match_parent"
-    android:background="#0F0"
-        android:layout_height="wrap_content">
+        android:layout_height="50dp"
+        android:background="@color/purple_700"
+        android:foreground="?selectableItemBackground">
 
-        <FrameLayout
-            android:id="@+id/item"
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:layout_margin="16dp"
-            android:foreground="?selectableItemBackgroundBorderless">
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="悬停头部"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/text"
-                android:gravity="center"
-                android:text="1111111"
-                android:textColor="#000"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-        </FrameLayout>
-
-    </LinearLayout>
+    </FrameLayout>
 

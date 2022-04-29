@@ -14,7 +14,9 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
 import com.github.kc.brv.item.ItemBind
+import com.github.kc.brv.item.ItemHover
 import com.github.kc.brv.item.ItemPosition
+import com.github.kc.brv.listener.OnHoverAttachListener
 import com.github.kc.brv.listener.throttleClick
 import com.github.kc.brv.util.BRV
 import java.lang.reflect.Modifier
@@ -160,6 +162,14 @@ open class BindingAdapter : RecyclerView.Adapter<BindingAdapter.BindingViewHolde
             isHeader(position) -> headers[position] as M
             isFooter(position) -> footers[position - headerCount - modelCount] as M
             else -> models!!.let { it[position - headerCount] as M }
+        }
+    }
+
+    inline fun <reified M> getModelOrNull(position: Int): M? {
+        return when {
+            isHeader(position) -> headers[position] as? M
+            isFooter(position) -> footers[position - headerCount - modelCount] as? M
+            else -> models?.let { it.getOrNull(position - headerCount) as? M }
         }
     }
 
@@ -346,4 +356,16 @@ open class BindingAdapter : RecyclerView.Adapter<BindingAdapter.BindingViewHolde
         return list
     }
 
+    //<editor-fold desc="悬停">
+    var hoverEnabled = true
+    /**
+     * 监听开始悬停
+     */
+    var onHoverAttachListener: OnHoverAttachListener? = null
+
+    fun isHover(position: Int) : Boolean {
+        val model = getModelOrNull<ItemHover>(position)
+        return model != null && model.itemHover && hoverEnabled
+    }
+    //</editor-fold>
 }
