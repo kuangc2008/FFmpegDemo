@@ -1,0 +1,8 @@
+//
+// Created by qihoo on 2022/4/29.
+//
+
+#ifndef FFMPEG_TRIANGLESAMPLE_H
+#define FFMPEG_TRIANGLESAMPLE_H
+
+#endif //FFMPEG_TRIANGLESAMPLE_H
