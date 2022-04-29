@@ -27,10 +27,10 @@ class MainActivity : AppCompatActivity() {
 //        binding.sampleText.text = NativeLib().stringFromJNI()
 
         Log.i("kcc", "1111");
-//        NativeLib().javaToc("哈哈哈哈哈")
-//        NativeLib().accessField();
-//        NativeLib().accessMethod();
-//        NativeLib().exceptionDeal()
+        NativeLib().javaToc("哈哈哈哈哈")
+        NativeLib().accessField();
+        NativeLib().accessMethod();
+        NativeLib().exceptionDeal()
         Log.i("kcc", "2222");
 
 
