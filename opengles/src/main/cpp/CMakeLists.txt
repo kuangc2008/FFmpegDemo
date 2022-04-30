@@ -11,6 +11,7 @@ project("my_opengl_es")
 
 file(GLOB src-files
         ${CMAKE_SOURCE_DIR}/sample/*.cpp
+        ${CMAKE_SOURCE_DIR}/render/*.cpp
         )
 
 # Creates and names a library, sets it as either STATIC
