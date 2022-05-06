@@ -34,6 +34,12 @@ class BrvActivity_Hover : AppCompatActivity() {
                         val textView = findView<TextView>(R.id.text)
                         textView.setText( "" + this.modelPosition )
                     }
+
+                    R.layout.item_hover_header -> {
+                        val textView = findView<TextView>(R.id.tv)
+
+                        textView.setText( "头部" + this.modelPosition )
+                    }
                 }
             }
 
