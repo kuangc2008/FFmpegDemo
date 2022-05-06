@@ -3,9 +3,12 @@ package com.github.kc.brv.layoutmanager
 import android.content.Context
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.github.kc.brv.BindingAdapter
+import com.github.kc.brv.listener.OnHoverAttachListener
 
 
 class HoverLinearLayoutManager @JvmOverloads constructor(
@@ -20,10 +23,19 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
     private val mHeaderPositionsObserver: RecyclerView.AdapterDataObserver = HeaderPositionsAdapterDataObserver()
 
     // Sticky header's ViewHolder and dirty state.
-    private val mHover: View? = null
+    private var mHover: View? = null
+
+    private var mTranslationX = 0f
+    private var mTranslationY = 0f
+
+
+    private var mPendingScrollPosition = RecyclerView.NO_POSITION
+    private var mPendingScrollOffset = 0
+
 
     // Attach count, to ensure the sticky header is only attached and detached when expected.
     private var hoverAttachCount = 0
+    private var mHoverPosition = RecyclerView.NO_POSITION
 
     private var mAdapter: BindingAdapter? = null
 
@@ -98,40 +110,346 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
 
     private fun detachHover() {
         if (--hoverAttachCount == 0 && mHover != null) {
-            detachView(mHover)
+            detachView(mHover!!)
         }
     }
 
     private fun attachHover() {
         if (++hoverAttachCount == 1 && mHover != null) {
-            attachView(mHover)
+            attachView(mHover!!)
+        }
+    }
+
+    private fun isViewValidAnchor(view: View, params: RecyclerView.LayoutParams): Boolean {
+        return if (!params.isItemRemoved && !params.isViewInvalid) {
+            if (orientation == VERTICAL) {
+                if (reverseLayout) {
+                    view.top + view.translationY <= height + mTranslationY
+                } else {
+                    view.bottom - view.translationY >= mTranslationY
+                }
+            } else {
+                if (reverseLayout) {
+                    view.left + view.translationX <= width + mTranslationX
+                } else {
+                    view.right - view.translationX >= mTranslationX
+                }
+            }
+        } else {
+            false
+        }
+    }
+
+    /**
+     * Finds the header index of `position` or the one before it in `mHeaderPositions`.
+     */
+    private fun findHeaderIndexOrBefore(position: Int): Int {
+        var low = 0
+        var high = mHeaderPositions.size - 1
+        while (low <= high) {
+            val middle = (low + high) / 2
+            if (mHeaderPositions[middle] > position) {
+                high = middle - 1
+            } else if (middle < mHeaderPositions.size - 1 && mHeaderPositions[middle + 1] <= position) {
+                low = middle + 1
+            } else {
+                return middle
+            }
+        }
+        return -1
+    }
+
+    /**
+     * Finds the header index of `position` or the one next to it in `mHeaderPositions`.
+     */
+    private fun findHeaderIndexOrNext(position: Int): Int {
+        var low = 0
+        var high = mHeaderPositions.size - 1
+        while (low <= high) {
+            val middle = (low + high) / 2
+            if (middle > 0 && mHeaderPositions[middle - 1] >= position) {
+                high = middle - 1
+            } else if (mHeaderPositions[middle] < position) {
+                low = middle + 1
+            } else {
+                return middle
+            }
+        }
+        return -1
+    }
+
+    private fun isViewOnBoundary(view: View): Boolean {
+        return if (orientation == VERTICAL) {
+            if (reverseLayout) {
+                view.bottom - view.translationY > height + mTranslationY
+            } else {
+                view.top + view.translationY < mTranslationY
+            }
+        } else {
+            if (reverseLayout) {
+                view.right - view.translationX > width + mTranslationX
+            } else {
+                view.left + view.translationX < mTranslationX
+            }
+        }
+    }
+
+    private fun createHover(recycler: RecyclerView.Recycler, position: Int) {
+        val hoverHeader = recycler.getViewForPosition(position)
+
+        // Setup hover header if the adapter requires it.
+        val onHoverAttachListener: OnHoverAttachListener? = mAdapter!!.onHoverAttachListener
+        if (onHoverAttachListener != null) {
+            onHoverAttachListener.attachHover(hoverHeader)
+        }
+
+        // Add hover header as a child view, to be detached / reattached whenever LinearLayoutManager#fill() is called,
+        // which happens on layout and scroll (see overrides).
+        addView(hoverHeader)
+        measureAndLayout(hoverHeader)
+
+        // Ignore hover header, as it's fully managed by this LayoutManager.
+        ignoreView(hoverHeader)
+        mHover = hoverHeader
+        mHoverPosition = position
+        hoverAttachCount = 1
+    }
+
+
+
+    private fun measureAndLayout(hoverHeader: View) {
+        measureChildWithMargins(hoverHeader, 0, 0)
+        if (orientation == VERTICAL) {
+            hoverHeader.layout(paddingLeft, 0, width - paddingRight, hoverHeader.measuredHeight)
+        } else {
+            hoverHeader.layout(0, paddingTop, hoverHeader.measuredWidth, height - paddingBottom)
         }
     }
 
     private fun updateHover(recycler : RecyclerView.Recycler, layout : Boolean) {
         val headerCount = mHeaderPositions.size
         val childCount = childCount
+
+
+        if (headerCount > 0 && childCount > 0) {
+            // Find first valid child.
+            var anchorView: View? = null
+            var anchorIndex = -1
+            var anchorPos = -1
+            for (i in 0 until childCount) {
+                val child = getChildAt(i) ?: continue
+                val params = child.layoutParams as RecyclerView.LayoutParams
+                if (isViewValidAnchor(child, params)) {
+                    anchorView = child
+                    anchorIndex = i
+                    anchorPos = params.viewAdapterPosition
+                    break
+                }
+            }
+            if (anchorView != null && anchorPos != -1) {
+                val headerIndex: Int = findHeaderIndexOrBefore(anchorPos)
+                val headerPos = if (headerIndex != -1) mHeaderPositions[headerIndex] else -1
+                val nextHeaderPos =
+                    if (headerCount > headerIndex + 1) mHeaderPositions[headerIndex + 1] else -1
+                // Show hover header if:
+                // - There's one to show;
+                // - It's on the edge or it's not the anchor view;
+                // - Isn't followed by another hover header;
+                if (headerPos != -1 && (headerPos != anchorPos || isViewOnBoundary(anchorView))
+                    && nextHeaderPos != headerPos + 1
+                ) {
+                    // Ensure existing hover header, if any, is of correct type.
+                    if (mHover != null && mAdapter != null
+                        && getItemViewType(mHover!!) != mAdapter!!.getItemViewType(headerPos)
+                    ) {
+                        // A hover header was shown before but is not of the correct type. Scrap it.
+                        scrapHover(recycler)
+                    }
+
+                    // Ensure hover header is created, if absent, or bound, if being laid out or the position changed.
+                    if (mHover == null) {
+                        createHover(recycler, headerPos)
+                    }
+                    if (layout || getPosition(mHover!!) != headerPos) {
+                        bindHover(recycler, headerPos)
+                    }
+
+                    // Draw the hover header using translation values which depend on orientation, direction and
+                    // position of the next header view.
+                    var nextHeaderView: View? = null
+                    if (nextHeaderPos != -1) {
+                        nextHeaderView = getChildAt(anchorIndex + (nextHeaderPos - anchorPos))
+                        // The header view itself is added to the RecyclerView. Discard it if it comes up.
+                        if (nextHeaderView === mHover) {
+                            nextHeaderView = null
+                        }
+                    }
+                    mHover!!.setTranslationX(getX(mHover!!, nextHeaderView))
+                    mHover!!.setTranslationY(getY(mHover!!, nextHeaderView))
+                    return
+                }
+            }
+        }
+
+        if (mHover != null) {
+            scrapHover(recycler)
+        }
+    }
+
+    private fun bindHover(recycler: RecyclerView.Recycler, position: Int) {
+        // Bind the hover header.
+        recycler.bindViewToPosition(mHover!!, position)
+        mHoverPosition = position
+        measureAndLayout(mHover!!)
+
+        // If we have a pending scroll wait until the end of layout and scroll again.
+        if (mPendingScrollPosition != RecyclerView.NO_POSITION) {
+            val vto = mHover!!.viewTreeObserver
+            vto.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+                override fun onGlobalLayout() {
+                    vto.removeOnGlobalLayoutListener(this)
+                    if (mPendingScrollPosition != RecyclerView.NO_POSITION) {
+                        scrollToPositionWithOffset(mPendingScrollPosition, mPendingScrollOffset)
+                        setPendingScroll(RecyclerView.NO_POSITION, INVALID_OFFSET)
+                    }
+                }
+            })
+        }
+    }
+
+    private fun setPendingScroll(position: Int, offset: Int) {
+        mPendingScrollPosition = position
+        mPendingScrollOffset = offset
+    }
+
+    private fun getX(headerView: View, nextHeaderView: View?): Float {
+        return if (orientation != VERTICAL) {
+            var x = mTranslationX
+            if (reverseLayout) {
+                x += (width - headerView.width).toFloat()
+            }
+            if (nextHeaderView != null) {
+                if (reverseLayout) {
+                    var rightMargin = 0
+                    if (nextHeaderView.layoutParams is ViewGroup.MarginLayoutParams) {
+                        rightMargin =
+                            (nextHeaderView.layoutParams as ViewGroup.MarginLayoutParams).rightMargin
+                    }
+                    x = Math.max((nextHeaderView.right + rightMargin).toFloat(), x)
+                } else {
+                    var leftMargin = 0
+                    if (nextHeaderView.layoutParams is ViewGroup.MarginLayoutParams) {
+                        leftMargin =
+                            (nextHeaderView.layoutParams as ViewGroup.MarginLayoutParams).leftMargin
+                    }
+                    x = Math.min((nextHeaderView.left - leftMargin - headerView.width).toFloat(), x)
+                }
+            }
+            x
+        } else {
+            mTranslationX
+        }
+    }
+
+    private fun getY(headerView: View, nextHeaderView: View?): Float {
+        return if (orientation == VERTICAL) {
+            var y = mTranslationY
+            if (reverseLayout) {
+                y += (height - headerView.height).toFloat()
+            }
+            if (nextHeaderView != null) {
+                if (reverseLayout) {
+                    var bottomMargin = 0
+                    if (nextHeaderView.layoutParams is ViewGroup.MarginLayoutParams) {
+                        bottomMargin =
+                            (nextHeaderView.layoutParams as ViewGroup.MarginLayoutParams).bottomMargin
+                    }
+                    y = Math.max((nextHeaderView.bottom + bottomMargin).toFloat(), y)
+                } else {
+                    var topMargin = 0
+                    if (nextHeaderView.layoutParams is ViewGroup.MarginLayoutParams) {
+                        topMargin =
+                            (nextHeaderView.layoutParams as ViewGroup.MarginLayoutParams).topMargin
+                    }
+                    y = Math.min((nextHeaderView.top - topMargin - headerView.height).toFloat(), y)
+                }
+            }
+            y
+        } else {
+            mTranslationY
+        }
     }
 
 
-    private class HeaderPositionsAdapterDataObserver : RecyclerView.AdapterDataObserver() {
+    /**
+     * Finds the header index of `position` in `mHeaderPositions`.
+     */
+    private fun findHeaderIndex(position: Int): Int {
+        var low = 0
+        var high = mHeaderPositions.size - 1
+        while (low <= high) {
+            val middle = (low + high) / 2
+            if (mHeaderPositions[middle] > position) {
+                high = middle - 1
+            } else if (mHeaderPositions[middle] < position) {
+                low = middle + 1
+            } else {
+                return middle
+            }
+        }
+        return -1
+    }
+
+
+    /**
+     * Returns [.mHover] to the [RecyclerView]'s [RecyclerView.RecycledViewPool], assigning it
+     * to `null`.
+     *
+     * @param recycler If passed, the hover header will be returned to the recycled view pool.
+     */
+    private fun scrapHover(recycler: RecyclerView.Recycler?) {
+        val hoverHeader = mHover!!
+        mHover = null
+        mHoverPosition = RecyclerView.NO_POSITION
+
+        // Revert translation values.
+        hoverHeader.translationX = 0f
+        hoverHeader.translationY = 0f
+
+        // Teardown holder if the adapter requires it.
+        mAdapter?.run {
+            onHoverAttachListener?.run {
+                detachHover(hoverHeader)
+            }
+        }
+        // Stop ignoring hover header so that it can be recycled.
+        stopIgnoringView(hoverHeader)
+
+        // Remove and recycle hover header.
+        removeView(hoverHeader)
+        recycler?.recycleView(hoverHeader)
+    }
+
+    private inner class HeaderPositionsAdapterDataObserver : RecyclerView.AdapterDataObserver() {
         override fun onChanged() {
 
             Log.i("kcc", "onChanged", Exception())
 
             // There's no hint at what changed, so go through the adapter.
-//            mHeaderPositions.clear()
-//            val itemCount: Int = mAdapter.getItemCount()
-//            for (i in 0 until itemCount) {
-//                if (mAdapter.isHover(i)) {
-//                    mHeaderPositions.add(i)
-//                }
-//            }
-//
-//            // Remove hover header immediately if the entry it represents has been removed. A layout will follow.
-//            if (mHover != null && !mHeaderPositions.contains(mHoverPosition)) {
-//                scrapHover(null)
-//            }
+            mHeaderPositions.clear()
+            mAdapter?.run {
+                val itemCount = itemCount
+                for (i in 0 until itemCount) {
+                    if (isHover(i)) {
+                        mHeaderPositions.add(i)
+                    }
+                }
+            }
+
+            // Remove hover header immediately if the entry it represents has been removed. A layout will follow.
+            if (mHover != null && !mHeaderPositions.contains(mHoverPosition)) {
+                scrapHover(null)
+            }
         }
 
         override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
@@ -139,55 +457,57 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
             Log.i("kcc", "onItemRangeInserted", Exception())
 
             // Shift headers below down.
-//            val headerCount: Int = mHeaderPositions.size
-//            if (headerCount > 0) {
-//                var i: Int = findHeaderIndexOrNext(positionStart)
-//                while (i != -1 && i < headerCount) {
-//                    mHeaderPositions.set(i, mHeaderPositions.get(i) + itemCount)
-//                    i++
-//                }
-//            }
-//
-//            // Add new headers.
-//            for (i in positionStart until positionStart + itemCount) {
-//                if (mAdapter.isHover(i)) {
-//                    val headerIndex: Int = findHeaderIndexOrNext(i)
-//                    if (headerIndex != -1) {
-//                        mHeaderPositions.add(headerIndex, i)
-//                    } else {
-//                        mHeaderPositions.add(i)
-//                    }
-//                }
-//            }
+            val headerCount: Int = mHeaderPositions.size
+            if (headerCount > 0) {
+                var i: Int = findHeaderIndexOrNext(positionStart)
+                while (i != -1 && i < headerCount) {
+                    mHeaderPositions.set(i, mHeaderPositions.get(i) + itemCount)
+                    i++
+                }
+            }
+
+            // Add new headers.
+            for (i in positionStart until positionStart + itemCount) {
+                mAdapter?.run {
+                    if (isHover(i)) {
+                        val headerIndex: Int = findHeaderIndexOrNext(i)
+                        if (headerIndex != -1) {
+                            mHeaderPositions.add(headerIndex, i)
+                        } else {
+                            mHeaderPositions.add(i)
+                        }
+                    }
+                }
+            }
         }
 
         override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
 
             Log.i("kcc", "onItemRangeRemoved", Exception())
 
-//            var headerCount: Int = mHeaderPositions.size
-//            if (headerCount > 0) {
-//                // Remove headers.
-//                for (i in positionStart + itemCount - 1 downTo positionStart) {
-//                    val index: Int = findHeaderIndex(i)
-//                    if (index != -1) {
-//                        mHeaderPositions.removeAt(index)
-//                        headerCount--
-//                    }
-//                }
-//
-//                // Remove hover header immediately if the entry it represents has been removed. A layout will follow.
-//                if (mHover != null && !mHeaderPositions.contains(mHoverPosition)) {
-//                    scrapHover(null)
-//                }
-//
-//                // Shift headers below up.
-//                var i: Int = findHeaderIndexOrNext(positionStart + itemCount)
-//                while (i != -1 && i < headerCount) {
-//                    mHeaderPositions.set(i, mHeaderPositions.get(i) - itemCount)
-//                    i++
-//                }
-//            }
+            var headerCount: Int = mHeaderPositions.size
+            if (headerCount > 0) {
+                // Remove headers.
+                for (i in positionStart + itemCount - 1 downTo positionStart) {
+                    val index: Int = findHeaderIndex(i)
+                    if (index != -1) {
+                        mHeaderPositions.removeAt(index)
+                        headerCount--
+                    }
+                }
+
+                // Remove hover header immediately if the entry it represents has been removed. A layout will follow.
+                if (mHover != null && !mHeaderPositions.contains(mHoverPosition)) {
+                    scrapHover(null)
+                }
+
+                // Shift headers below up.
+                var i: Int = findHeaderIndexOrNext(positionStart + itemCount)
+                while (i != -1 && i < headerCount) {
+                    mHeaderPositions.set(i, mHeaderPositions.get(i) - itemCount)
+                    i++
+                }
+            }
         }
 
         override fun onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) {
@@ -196,43 +516,43 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
 
             // Shift moved headers by toPosition - fromPosition.
             // Shift headers in-between by itemCount (reverse if downwards).
-//            val headerCount: Int = mHeaderPositions.size
-//            if (headerCount > 0) {
-//                val topPosition = Math.min(fromPosition, toPosition)
-//                var i: Int = findHeaderIndexOrNext(topPosition)
-//                while (i != -1 && i < headerCount) {
-//                    val headerPos: Int = mHeaderPositions.get(i)
-//                    var newHeaderPos = headerPos
-//                    if (headerPos >= fromPosition && headerPos < fromPosition + itemCount) {
-//                        newHeaderPos += toPosition - fromPosition
-//                    } else if (fromPosition < toPosition && headerPos >= fromPosition + itemCount && headerPos <= toPosition) {
-//                        newHeaderPos -= itemCount
-//                    } else if (fromPosition > toPosition && headerPos >= toPosition && headerPos <= fromPosition) {
-//                        newHeaderPos += itemCount
-//                    } else {
-//                        break
-//                    }
-//                    if (newHeaderPos != headerPos) {
-//                        mHeaderPositions.set(i, newHeaderPos)
-//                        sortHeaderAtIndex(i)
-//                    } else {
-//                        break
-//                    }
-//                    i++
-//                }
-//            }
+            val headerCount: Int = mHeaderPositions.size
+            if (headerCount > 0) {
+                val topPosition = Math.min(fromPosition, toPosition)
+                var i: Int = findHeaderIndexOrNext(topPosition)
+                while (i != -1 && i < headerCount) {
+                    val headerPos: Int = mHeaderPositions.get(i)
+                    var newHeaderPos = headerPos
+                    if (headerPos >= fromPosition && headerPos < fromPosition + itemCount) {
+                        newHeaderPos += toPosition - fromPosition
+                    } else if (fromPosition < toPosition && headerPos >= fromPosition + itemCount && headerPos <= toPosition) {
+                        newHeaderPos -= itemCount
+                    } else if (fromPosition > toPosition && headerPos >= toPosition && headerPos <= fromPosition) {
+                        newHeaderPos += itemCount
+                    } else {
+                        break
+                    }
+                    if (newHeaderPos != headerPos) {
+                        mHeaderPositions.set(i, newHeaderPos)
+                        sortHeaderAtIndex(i)
+                    } else {
+                        break
+                    }
+                    i++
+                }
+            }
         }
 
         private fun sortHeaderAtIndex(index: Int) {
 
             Log.i("kcc", "sortHeaderAtIndex", Exception())
-//            val headerPos: Int = mHeaderPositions.removeAt(index)
-//            val headerIndex: Int = findHeaderIndexOrNext(headerPos)
-//            if (headerIndex != -1) {
-//                mHeaderPositions.add(headerIndex, headerPos)
-//            } else {
-//                mHeaderPositions.add(headerPos)
-//            }
+            val headerPos: Int = mHeaderPositions.removeAt(index)
+            val headerIndex: Int = findHeaderIndexOrNext(headerPos)
+            if (headerIndex != -1) {
+                mHeaderPositions.add(headerIndex, headerPos)
+            } else {
+                mHeaderPositions.add(headerPos)
+            }
         }
     }
 }
