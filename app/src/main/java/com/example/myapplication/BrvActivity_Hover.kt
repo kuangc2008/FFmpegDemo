@@ -3,11 +3,13 @@ package com.example.myapplication
 import android.content.Context
 import android.os.Bundle
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.drake.tooltip.toast
+import com.example.myapplication.databinding.FragmentMultiTypeBinding
 import com.example.myapplication.rv.model.HoverHeaderModel
 import com.example.myapplication.rv.model.Model
 import com.github.kc.brv.util.linear
@@ -17,9 +19,15 @@ class BrvActivity_Hover : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
 
+    private lateinit var binding: FragmentMultiTypeBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.fragment_multi_type)
+
+        binding = FragmentMultiTypeBinding.inflate(layoutInflater)
+
+
+        setContentView(binding.root)
 
 
         recyclerView = findViewById<RecyclerView>(R.id.rv)
@@ -31,13 +39,13 @@ class BrvActivity_Hover : AppCompatActivity() {
             onBind {
                 when (itemViewType) {
                     R.layout.item_multi_type_simple -> {
+                        Log.i("kcc4", "findView：：：：：11111111")
                         val textView = findView<TextView>(R.id.text)
                         textView.setText( "" + this.modelPosition )
                     }
 
                     R.layout.item_hover_header -> {
                         val textView = findView<TextView>(R.id.tv)
-
                         textView.setText( "头部" + this.modelPosition )
                     }
                 }

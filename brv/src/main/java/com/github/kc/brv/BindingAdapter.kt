@@ -263,6 +263,7 @@ open class BindingAdapter : RecyclerView.Adapter<BindingAdapter.BindingViewHolde
 
         fun <V : View> findView(@IdRes id: Int): V = itemView.findViewById(id)
 
+
         init {
             for (clickListener in clickListeners) {
                 val view = itemView.findViewById<View>(clickListener.key) ?: continue
