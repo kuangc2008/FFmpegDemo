@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.github.kc.brv.BindingAdapter
 import com.github.kc.brv.listener.OnHoverAttachListener
+import com.kc.k_util.LogUtils
 
 
 class HoverLinearLayoutManager @JvmOverloads constructor(
@@ -42,8 +43,9 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
 
     override fun onAttachedToWindow(view: RecyclerView) {
         super.onAttachedToWindow(view)
+        LogUtils.logMethod()
         setAdapter(view.adapter)
-        Log.i("kcc", "onAttachedToWindow", Exception())
+
     }
 
     override fun onAdapterChanged(
@@ -51,12 +53,14 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
         newAdapter: RecyclerView.Adapter<*>?
     ) {
         super.onAdapterChanged(oldAdapter, newAdapter)
+        LogUtils.logMethod()
         setAdapter(newAdapter)
 
 
     }
 
     private fun setAdapter(adapter: RecyclerView.Adapter<*>?) {
+        LogUtils.logMethod()
         mAdapter?.unregisterAdapterDataObserver(mHeaderPositionsObserver)
 
         if (adapter is BindingAdapter) {
@@ -76,7 +80,7 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
         state: RecyclerView.State?
     ): Int {
         Log.i("kcc", "scroll  1")
-
+        LogUtils.logMethod()
         detachHover()
         val scrolled = super.scrollVerticallyBy(dy, recycler, state)
         attachHover()
@@ -91,6 +95,7 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
         recycler: RecyclerView.Recycler?,
         state: RecyclerView.State?
     ): Int {
+        LogUtils.logMethod()
         Log.i("kcc", "scroll  2")
         return super.scrollHorizontallyBy(dx, recycler, state)
     }
@@ -98,7 +103,7 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
     override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
 
         Log.i("kcc", "onLayoutChildren", Exception())
-
+        LogUtils.logMethod()
         detachHover()
         super.onLayoutChildren(recycler, state)
         attachHover()
@@ -109,18 +114,25 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
     }
 
     private fun detachHover() {
+        LogUtils.logMethod()
+
         if (--hoverAttachCount == 0 && mHover != null) {
             detachView(mHover!!)
         }
+        Log.i("kcc3", "hoverAttachCount $hoverAttachCount")
     }
 
     private fun attachHover() {
+        LogUtils.logMethod()
+
         if (++hoverAttachCount == 1 && mHover != null) {
             attachView(mHover!!)
         }
+        Log.i("kcc3", "attachHover hoverAttachCount $hoverAttachCount")
     }
 
     private fun isViewValidAnchor(view: View, params: RecyclerView.LayoutParams): Boolean {
+        LogUtils.logMethod()
         return if (!params.isItemRemoved && !params.isViewInvalid) {
             if (orientation == VERTICAL) {
                 if (reverseLayout) {
@@ -144,6 +156,7 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
      * Finds the header index of `position` or the one before it in `mHeaderPositions`.
      */
     private fun findHeaderIndexOrBefore(position: Int): Int {
+        LogUtils.logMethod()
         var low = 0
         var high = mHeaderPositions.size - 1
         while (low <= high) {
@@ -163,6 +176,7 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
      * Finds the header index of `position` or the one next to it in `mHeaderPositions`.
      */
     private fun findHeaderIndexOrNext(position: Int): Int {
+        LogUtils.logMethod()
         var low = 0
         var high = mHeaderPositions.size - 1
         while (low <= high) {
@@ -179,6 +193,7 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
     }
 
     private fun isViewOnBoundary(view: View): Boolean {
+        LogUtils.logMethod()
         return if (orientation == VERTICAL) {
             if (reverseLayout) {
                 view.bottom - view.translationY > height + mTranslationY
@@ -195,6 +210,7 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
     }
 
     private fun createHover(recycler: RecyclerView.Recycler, position: Int) {
+        LogUtils.logMethod()
         val hoverHeader = recycler.getViewForPosition(position)
 
         // Setup hover header if the adapter requires it.
@@ -206,6 +222,7 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
         // Add hover header as a child view, to be detached / reattached whenever LinearLayoutManager#fill() is called,
         // which happens on layout and scroll (see overrides).
         addView(hoverHeader)
+        Log.i("kcc3", "*** addView")
         measureAndLayout(hoverHeader)
 
         // Ignore hover header, as it's fully managed by this LayoutManager.
@@ -218,15 +235,20 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
 
 
     private fun measureAndLayout(hoverHeader: View) {
+        LogUtils.logMethod()
         measureChildWithMargins(hoverHeader, 0, 0)
         if (orientation == VERTICAL) {
             hoverHeader.layout(paddingLeft, 0, width - paddingRight, hoverHeader.measuredHeight)
+
+            Log.i("kcc3", "*** hoverHeader.measuredHeight ${hoverHeader.measuredHeight}")
+
         } else {
             hoverHeader.layout(0, paddingTop, hoverHeader.measuredWidth, height - paddingBottom)
         }
     }
 
     private fun updateHover(recycler : RecyclerView.Recycler, layout : Boolean) {
+        LogUtils.logMethod()
         val headerCount = mHeaderPositions.size
         val childCount = childCount
 
@@ -271,6 +293,7 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
                         createHover(recycler, headerPos)
                     }
                     if (layout || getPosition(mHover!!) != headerPos) {
+                        // 绑定数据
                         bindHover(recycler, headerPos)
                     }
 
@@ -278,6 +301,7 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
                     // position of the next header view.
                     var nextHeaderView: View? = null
                     if (nextHeaderPos != -1) {
+                        // 2 拿到下一个item
                         nextHeaderView = getChildAt(anchorIndex + (nextHeaderPos - anchorPos))
                         // The header view itself is added to the RecyclerView. Discard it if it comes up.
                         if (nextHeaderView === mHover) {
@@ -285,6 +309,10 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
                         }
                     }
                     mHover!!.setTranslationX(getX(mHover!!, nextHeaderView))
+
+                    Log.i("kcc3", "getY:" + getY(mHover!!, nextHeaderView))
+
+                    // 1 滑动到中间态的时候，用于位置的移动
                     mHover!!.setTranslationY(getY(mHover!!, nextHeaderView))
                     return
                 }
@@ -297,8 +325,12 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
     }
 
     private fun bindHover(recycler: RecyclerView.Recycler, position: Int) {
+        LogUtils.logMethod()
         // Bind the hover header.
         recycler.bindViewToPosition(mHover!!, position)
+
+        Log.i("kcc3", "*** bindHover:")
+
         mHoverPosition = position
         measureAndLayout(mHover!!)
 
@@ -309,6 +341,8 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
                 override fun onGlobalLayout() {
                     vto.removeOnGlobalLayoutListener(this)
                     if (mPendingScrollPosition != RecyclerView.NO_POSITION) {
+
+
                         scrollToPositionWithOffset(mPendingScrollPosition, mPendingScrollOffset)
                         setPendingScroll(RecyclerView.NO_POSITION, INVALID_OFFSET)
                     }
@@ -318,11 +352,13 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
     }
 
     private fun setPendingScroll(position: Int, offset: Int) {
+        LogUtils.logMethod()
         mPendingScrollPosition = position
         mPendingScrollOffset = offset
     }
 
     private fun getX(headerView: View, nextHeaderView: View?): Float {
+        LogUtils.logMethod()
         return if (orientation != VERTICAL) {
             var x = mTranslationX
             if (reverseLayout) {
@@ -352,6 +388,7 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
     }
 
     private fun getY(headerView: View, nextHeaderView: View?): Float {
+        LogUtils.logMethod()
         return if (orientation == VERTICAL) {
             var y = mTranslationY
             if (reverseLayout) {
@@ -364,6 +401,7 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
                         bottomMargin =
                             (nextHeaderView.layoutParams as ViewGroup.MarginLayoutParams).bottomMargin
                     }
+
                     y = Math.max((nextHeaderView.bottom + bottomMargin).toFloat(), y)
                 } else {
                     var topMargin = 0
@@ -371,6 +409,8 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
                         topMargin =
                             (nextHeaderView.layoutParams as ViewGroup.MarginLayoutParams).topMargin
                     }
+                    //  拿到nextHeaderView的top
+                    Log.i("kcc3", "nextHeaderView.top: ${nextHeaderView.top}  height ${headerView.height} ")
                     y = Math.min((nextHeaderView.top - topMargin - headerView.height).toFloat(), y)
                 }
             }
@@ -385,6 +425,7 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
      * Finds the header index of `position` in `mHeaderPositions`.
      */
     private fun findHeaderIndex(position: Int): Int {
+        LogUtils.logMethod()
         var low = 0
         var high = mHeaderPositions.size - 1
         while (low <= high) {
@@ -408,6 +449,7 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
      * @param recycler If passed, the hover header will be returned to the recycled view pool.
      */
     private fun scrapHover(recycler: RecyclerView.Recycler?) {
+        LogUtils.logMethod()
         val hoverHeader = mHover!!
         mHover = null
         mHoverPosition = RecyclerView.NO_POSITION
@@ -427,12 +469,16 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
 
         // Remove and recycle hover header.
         removeView(hoverHeader)
+
+        Log.i("kcc3", "** removeView")
+
         recycler?.recycleView(hoverHeader)
     }
 
     private inner class HeaderPositionsAdapterDataObserver : RecyclerView.AdapterDataObserver() {
-        override fun onChanged() {
 
+        override fun onChanged() {
+            LogUtils.logMethod()
             Log.i("kcc", "onChanged", Exception())
 
             // There's no hint at what changed, so go through the adapter.
@@ -455,7 +501,7 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
         override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
 
             Log.i("kcc", "onItemRangeInserted", Exception())
-
+            LogUtils.logMethod()
             // Shift headers below down.
             val headerCount: Int = mHeaderPositions.size
             if (headerCount > 0) {
@@ -482,7 +528,7 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
         }
 
         override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
-
+            LogUtils.logMethod()
             Log.i("kcc", "onItemRangeRemoved", Exception())
 
             var headerCount: Int = mHeaderPositions.size
@@ -511,7 +557,7 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
         }
 
         override fun onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) {
-
+            LogUtils.logMethod()
             Log.i("kcc", "onItemRangeMoved", Exception())
 
             // Shift moved headers by toPosition - fromPosition.
@@ -544,7 +590,7 @@ class HoverLinearLayoutManager @JvmOverloads constructor(
         }
 
         private fun sortHeaderAtIndex(index: Int) {
-
+            LogUtils.logMethod()
             Log.i("kcc", "sortHeaderAtIndex", Exception())
             val headerPos: Int = mHeaderPositions.removeAt(index)
             val headerIndex: Int = findHeaderIndexOrNext(headerPos)
