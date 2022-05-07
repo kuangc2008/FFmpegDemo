@@ -17,8 +17,11 @@
 package com.github.kc.brv.util
 
 import android.widget.RemoteViews
+import androidx.annotation.DrawableRes
 import androidx.recyclerview.widget.RecyclerView
 import com.github.kc.brv.BindingAdapter
+import com.github.kc.brv.DefaultDecoration
+import com.github.kc.brv.annotation.DividerOrientation
 import com.github.kc.brv.layoutmanager.HoverLinearLayoutManager
 import java.lang.NullPointerException
 
@@ -32,6 +35,26 @@ fun RecyclerView.linear(
         this.scrollEnabled = scrollEnabled
         this.stackFromEnd = stackFromEnd
     }
+    return this
+}
+
+
+fun RecyclerView.divider(
+    @DrawableRes drawable: Int,
+    orientation: DividerOrientation = DividerOrientation.HORIZONTAL
+): RecyclerView {
+    return divider {
+        setDrawable(drawable)
+        this.orientation = orientation
+    }
+}
+
+
+fun  RecyclerView.divider (
+    block : DefaultDecoration.() -> Unit
+): RecyclerView {
+    val itemDecoration = DefaultDecoration(context).apply(block)
+    addItemDecoration(itemDecoration)
     return this
 }
 
