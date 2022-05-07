@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.github.kc.brv.DefaultDecoration.Edge.Companion.computeEdge
 import com.github.kc.brv.annotation.DividerOrientation
+import com.github.kc.brv.item.ItemExpand
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
@@ -240,7 +241,7 @@ class DefaultDecoration  constructor(private val context : Context): RecyclerVie
         onEnabled?.let {
             val vh = parent.findContainingViewHolder(view) as BindingAdapter.BindingViewHolder
             val modelOrNull = vh.getModelOrNull<Any>()
-//            if (!expandVisible && modelOrNull != null && modelOrNull is ItemExpand && modelOrNull.itemExpand) return
+            if (!expandVisible && modelOrNull != null && modelOrNull is ItemExpand && modelOrNull.itemExpand) return
             if (!it.invoke(vh)) return
         }
 
@@ -429,7 +430,7 @@ class DefaultDecoration  constructor(private val context : Context): RecyclerVie
             if (onEnabled != null) {
                 val vh = parent.getChildViewHolder(child) as BindingAdapter.BindingViewHolder
                 val modelOrNull = vh.getModelOrNull<Any>()
-//                if (!expandVisible && modelOrNull != null && modelOrNull is ItemExpand && modelOrNull.itemExpand) continue@loop
+                if (!expandVisible && modelOrNull != null && modelOrNull is ItemExpand && modelOrNull.itemExpand) continue@loop
                 val enabled = onEnabled?.invoke(vh) ?: true
                 if (!enabled) continue@loop
             }
@@ -516,7 +517,7 @@ class DefaultDecoration  constructor(private val context : Context): RecyclerVie
             if (onEnabled != null) {
                 val vh = parent.getChildViewHolder(child) as BindingAdapter.BindingViewHolder
                 val modelOrNull = vh.getModelOrNull<Any>()
-//                if (!expandVisible && modelOrNull != null && modelOrNull is ItemExpand && modelOrNull.itemExpand) continue@loop
+                if (!expandVisible && modelOrNull != null && modelOrNull is ItemExpand && modelOrNull.itemExpand) continue@loop
                 val enabled = onEnabled?.invoke(vh) ?: true
                 if (!enabled) continue@loop
             }
@@ -581,7 +582,7 @@ class DefaultDecoration  constructor(private val context : Context): RecyclerVie
             if (onEnabled != null) {
                 val vh = parent.getChildViewHolder(child) as BindingAdapter.BindingViewHolder
                 val modelOrNull = vh.getModelOrNull<Any>()
-//                if (!expandVisible && modelOrNull != null && modelOrNull is ItemExpand && modelOrNull.itemExpand) continue@loop
+                if (!expandVisible && modelOrNull != null && modelOrNull is ItemExpand && modelOrNull.itemExpand) continue@loop
                 val enabled = onEnabled?.invoke(vh) ?: true
                 if (!enabled) continue@loop
             }

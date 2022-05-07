@@ -26,10 +26,7 @@ class BrvActivity_Hover : AppCompatActivity() {
 
         binding = FragmentMultiTypeBinding.inflate(layoutInflater)
 
-
         setContentView(binding.root)
-
-
         recyclerView = findViewById<RecyclerView>(R.id.rv)
 
         recyclerView.linear().setup {

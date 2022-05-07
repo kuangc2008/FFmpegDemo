@@ -12,14 +12,19 @@ import androidx.annotation.IntRange
 import androidx.annotation.LayoutRes
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.github.kc.brv.animation.AlphaItemAnimation
+import com.github.kc.brv.animation.ItemAnimation
 import com.github.kc.brv.item.ItemBind
+import com.github.kc.brv.item.ItemExpand
 import com.github.kc.brv.item.ItemHover
 import com.github.kc.brv.item.ItemPosition
 import com.github.kc.brv.listener.OnHoverAttachListener
 import com.github.kc.brv.listener.throttleClick
 import com.github.kc.brv.util.BRV
 import java.lang.reflect.Modifier
+import kotlin.math.min
 
 open class BindingAdapter : RecyclerView.Adapter<BindingAdapter.BindingViewHolder>() {
 
@@ -36,6 +41,10 @@ open class BindingAdapter : RecyclerView.Adapter<BindingAdapter.BindingViewHolde
             }
         }
     }
+
+
+    /** 当前Adapter被setAdapter才不为null */
+    var rv: RecyclerView? = null
 
     private var lastPosition = -1
     private var isFirst = true
@@ -157,6 +166,32 @@ open class BindingAdapter : RecyclerView.Adapter<BindingAdapter.BindingViewHolde
 
     override fun getItemCount(): Int = headerCount + modelCount + footerCount
 
+//    /** 自定义ItemTouchHelper即可设置该属性 */
+//    var itemTouchHelper: ItemTouchHelper? = ItemTouchHelper(DefaultItemTouchCallback())
+//        set(value) {
+//            if (value == null) field?.attachToRecyclerView(null) else value.attachToRecyclerView(rv)
+//            field = value
+//        }
+
+
+    private var context: Context? = null
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        this.rv = recyclerView
+        if (context == null) {
+            context = recyclerView.context
+        }
+//        itemTouchHelper?.attachToRecyclerView(recyclerView)
+    }
+
+    override fun onViewAttachedToWindow(holder: BindingViewHolder) {
+        super.onViewAttachedToWindow(holder)
+        val layoutPosition = holder.layoutPosition
+        if (animationEnabled && lastPosition < layoutPosition) {
+            itemAnimation.onItemEnterAnimation(holder.itemView)
+            lastPosition = layoutPosition
+        }
+    }
+
     fun <M> getModel(@IntRange(from = 0) position: Int): M {
         return when {
             isHeader(position) -> headers[position] as M
@@ -164,6 +199,16 @@ open class BindingAdapter : RecyclerView.Adapter<BindingAdapter.BindingViewHolde
             else -> models!!.let { it[position - headerCount] as M }
         }
     }
+
+
+
+    // <editor-fold desc="列表动画">
+    private var itemAnimation: ItemAnimation = AlphaItemAnimation()
+    /** 是否启用条目动画 */
+    var animationEnabled = false
+
+
+
 
     inline fun <reified M> getModelOrNull(position: Int): M? {
         return when {
@@ -246,12 +291,110 @@ open class BindingAdapter : RecyclerView.Adapter<BindingAdapter.BindingViewHolde
         clickListeners[this] = Pair(listener, false)
     }
 
+    fun @receiver:IdRes Int.onFastClick(listener: BindingViewHolder.(viewId: Int) -> Unit) {
+        clickListeners[this] = Pair(listener, true)
+    }
 
+
+    //<editor-fold desc="分组">
+
+    private var previousExpandPosition = -1
+    private var onExpand: (BindingViewHolder.(Boolean) -> Unit)? = null
+
+    /** 分组展开和折叠是否启用动画 */
+    var expandAnimationEnabled = true
+
+    /** 只允许一个条目展开(展开当前条目就会折叠上个条目) */
+    var singleExpandMode = false
+
+    /** 监听展开分组 */
+    fun onExpand(block: BindingViewHolder.(Boolean) -> Unit) {
+        this.onExpand = block
+    }
+
+    /**
+     * 判断两个位置的item是否属于同一分组下, 要求这两个位置的item都展开才有效
+     * 如果其中一个item都属于根节点则返回-1, 这种情况不算属于同一分组下
+     */
+    fun isSameGroup(
+        @IntRange(from = 0) position: Int,
+        @IntRange(from = 0) otherPosition: Int,
+    ): Boolean {
+        val aModel = models?.getOrNull(otherPosition) ?: return false
+        val bModel = models?.getOrNull(otherPosition) ?: return false
+        for (index in min(position, otherPosition) - 1 downTo 0) {
+            val item = models?.getOrNull(index) ?: break
+            if (item is ItemExpand && item.itemSublist?.contains(aModel) == true
+                && item.itemSublist?.contains(bModel) == true
+            ) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * 展开
+     * @param position 指定position的条目折叠
+     * @param scrollTop 展开同时当前条目滑动到顶部
+     * @param depth 递归展开子项的深度, 如等于-1则代表展开所有子项, 0表示仅展开当前
+     * @return 展开后增加的条目数量
+     */
+    fun expand(
+        @IntRange(from = 0) position: Int,
+        scrollTop: Boolean = false,
+        @IntRange(from = -1) depth: Int = 0,
+    ): Int {
+        val holder = rv?.findViewHolderForLayoutPosition(position) as? BindingViewHolder ?: rv?.run {
+            val holder = createViewHolder(this, getItemViewType(position))
+            bindViewHolder(holder, position)
+            holder
+        } ?: return 0
+        return holder.expand(scrollTop, depth)
+    }
+
+    /**
+     * 折叠
+     * @param position 指定position的条目折叠
+     * @param depth 递归展开子项的深度, 如等于-1则代表展开所有子项, 0表示仅展开当前
+     * @return 折叠后消失的条目数量
+     */
+    fun collapse(@IntRange(from = 0) position: Int, @IntRange(from = -1) depth: Int = 0): Int {
+        val holder = rv?.findViewHolderForLayoutPosition(position) as? BindingViewHolder ?: rv?.run {
+            val holder = createViewHolder(this, getItemViewType(position))
+            bindViewHolder(holder, position)
+            holder
+        } ?: return 0
+        return holder.collapse(depth)
+    }
+
+    /**
+     * 展开或折叠
+     * @param scrollTop 展开同时当前条目滑动到顶部
+     * @param depth 递归展开子项的深度, 如等于-1则代表展开所有子项, 0表示仅展开当前
+     * @return 展开或折叠后变动的条目数量
+     */
+    fun expandOrCollapse(
+        @IntRange(from = 0) position: Int,
+        scrollTop: Boolean = false,
+        @IntRange(from = -1) depth: Int = 0,
+    ): Int {
+        val holder = rv?.findViewHolderForLayoutPosition(position) as? BindingViewHolder ?: rv?.run {
+            val holder = createViewHolder(this, getItemViewType(position))
+            bindViewHolder(holder, position)
+            holder
+        } ?: return 0
+        return holder.expandOrCollapse(scrollTop, depth)
+    }
+
+    //</editor-fold>
 
 
     inner class BindingViewHolder : RecyclerView.ViewHolder {
         lateinit var _data: Any private set
         private var viewDataBinding: ViewDataBinding? = null
+
+        val adapter: BindingAdapter = this@BindingAdapter
 
         val modelPosition get() = layoutPosition - headerCount
 
@@ -320,6 +463,129 @@ open class BindingAdapter : RecyclerView.Adapter<BindingAdapter.BindingViewHolde
          * 返回数据模型
          */
         fun <M> getModel(): M = _data as M
+
+
+        //<editor-fold desc="分组">
+        /**
+         * 展开子项
+         * @param scrollTop 展开同时当前条目滑动到顶部
+         * @param depth 递归展开子项的深度, 如等于-1则代表展开所有子项, 0表示仅展开当前
+         * @return 展开后新增的条目数量
+         */
+        fun expand(scrollTop: Boolean = true, @IntRange(from = -1) depth: Int = 0): Int {
+            val itemExpand = getModelOrNull<ItemExpand>()
+            if (itemExpand?.itemExpand == true) return 0
+
+            var position = if (bindingAdapterPosition == -1) layoutPosition else bindingAdapterPosition
+
+            if (singleExpandMode && previousExpandPosition != -1 && findParentPosition() != previousExpandPosition) {
+                val collapseCount = adapter.collapse(previousExpandPosition)
+                if (position > previousExpandPosition) {
+                    position -= collapseCount
+                }
+            }
+
+            onExpand?.invoke(this, true)
+
+            return if (itemExpand != null && !itemExpand.itemExpand) {
+                val itemSublist = itemExpand.itemSublist
+                itemExpand.itemExpand = true
+                previousExpandPosition = position
+                if (itemSublist.isNullOrEmpty()) {
+                    notifyItemChanged(position)
+                    0
+                } else {
+                    val sublistFlat = flat(ArrayList(itemSublist), true, depth)
+
+                    (this@BindingAdapter.models as MutableList).addAll(position + 1, sublistFlat)
+                    if (expandAnimationEnabled) {
+                        notifyItemChanged(position)
+                        notifyItemRangeInserted(position + 1, sublistFlat.size)
+                    } else {
+                        notifyDataSetChanged()
+                    }
+                    if (scrollTop) {
+                        rv?.postDelayed({ rv?.smoothScrollToPosition(position) }, 200)
+                    }
+                    sublistFlat.size
+                }
+            } else {
+                0
+            }
+        }
+
+        /**
+         * 折叠子项
+         * @param depth 递归折叠子项的深度, 如等于-1则代表展开所有子项, 0表示仅展开当前
+         * @return 折叠后减少的条目数量
+         */
+        fun collapse(@IntRange(from = -1) depth: Int = 0): Int {
+            val itemExpand = getModelOrNull<ItemExpand>()
+
+            if (itemExpand?.itemExpand == false) return 0
+            val position = if (bindingAdapterPosition == -1) layoutPosition else bindingAdapterPosition
+
+            onExpand?.invoke(this, false)
+
+            return if (itemExpand != null && itemExpand.itemExpand) {
+                val itemSublist = itemExpand.itemSublist
+                itemExpand.itemExpand = false
+
+                if (itemSublist.isNullOrEmpty()) {
+                    notifyItemChanged(position, itemExpand)
+                    0
+                } else {
+                    val sublistFlat = flat(ArrayList(itemSublist), false, depth)
+                    (this@BindingAdapter.models as MutableList).subList(position + 1, position + 1 + sublistFlat.size).clear()
+                    if (expandAnimationEnabled) {
+                        notifyItemChanged(position, itemExpand)
+                        notifyItemRangeRemoved(position + 1, sublistFlat.size)
+                    } else {
+                        notifyDataSetChanged()
+                    }
+                    sublistFlat.size
+                }
+            } else {
+                0
+            }
+        }
+
+        /**
+         * 展开或折叠子项
+         * @param scrollTop 展开同时当前条目滑动到顶部
+         * @param depth 递归展开子项的深度, 如等于-1则代表展开所有子项, 0表示仅展开当前
+         * @return 展开|折叠后变动的条目数量
+         */
+        fun expandOrCollapse(scrollTop: Boolean = false, @IntRange(from = -1) depth: Int = 0): Int {
+            val itemExpand = getModelOrNull<ItemExpand>()
+            return if (itemExpand != null) {
+                if (itemExpand.itemExpand) collapse(depth) else expand(scrollTop, depth)
+            } else 0
+        }
+
+        /**
+         * 查找分组中的父项位置
+         * @return -1 表示不存在父项
+         */
+        fun findParentPosition(): Int {
+            for (index in layoutPosition - 1 downTo 0) {
+                val item = models?.getOrNull(index) ?: break
+                if (item is ItemExpand && item.itemSublist?.contains(_data) == true) {
+                    return index
+                }
+            }
+            return -1
+        }
+
+        /**
+         * 查找分组中的父项ViewHolder
+         * @return null表示不存在父项
+         */
+        fun findParentViewHolder(): BindingViewHolder? {
+            return rv?.findViewHolderForLayoutPosition(findParentPosition()) as? BindingViewHolder
+        }
+
+        //</editor-fold>
     }
 
 
