@@ -605,20 +605,20 @@ open class BindingAdapter : RecyclerView.Adapter<BindingAdapter.BindingViewHolde
 
         arrayList.forEachIndexed { index, item ->
             list.add(item)
-//            if (item is ItemExpand) {
-//                item.itemGroupPosition = index
-//                var nextDepth = depth
-//                if (expand != null && depth != 0) {
-//                    item.itemExpand = expand
-//                    if (depth > 0) nextDepth -= 1
-//                }
-//
-//                val itemSublist = item.itemSublist
-//                if (!itemSublist.isNullOrEmpty() && (item.itemExpand || (depth != 0 && expand != null))) {
-//                    val nestedList = flat(ArrayList(itemSublist), expand, nextDepth)
-//                    list.addAll(nestedList)
-//                }
-//            }
+            if (item is ItemExpand) {
+                item.itemGroupPosition = index
+                var nextDepth = depth
+                if (expand != null && depth != 0) {
+                    item.itemExpand = expand
+                    if (depth > 0) nextDepth -= 1
+                }
+
+                val itemSublist = item.itemSublist
+                if (!itemSublist.isNullOrEmpty() && (item.itemExpand || (depth != 0 && expand != null))) {
+                    val nestedList = flat(ArrayList(itemSublist), expand, nextDepth)
+                    list.addAll(nestedList)
+                }
+            }
         }
         return list
     }
