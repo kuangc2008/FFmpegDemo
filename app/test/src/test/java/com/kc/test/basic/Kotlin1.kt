@@ -17,7 +17,7 @@ class Kotlin1 {
         // IntArray
         // java : int[]
         val intArrayOf = intArrayOf(1, 2, 3, 4, 5)
-        val intArrayOf1 = intArrayOf(10)
+        val intArrayOf1 = IntArray(10)
 
         val arrayOfNulls = arrayOfNulls<Person>(10)
     }
