@@ -5,7 +5,70 @@ import org.junit.Test;
 import java.util.Arrays;
 
 public class A {
+    public static final Object lock = new Object();
 
+    public int currPrintThread = 0;
+    private int i = 0;
+
+    @Test
+    public void printAltermate() {
+        int[] nums = new int[] {
+                1, 2, 3, 4, 5, 6, 7, 8, 9 , 10
+        };
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (i != nums.length -1) {
+                    synchronized (lock) {
+                        while (currPrintThread == 2) {
+                            try {
+                                lock.wait();
+                            } catch (InterruptedException e) {
+                            }
+                        }
+                    }
+
+                    System.out.println( "thread 1: " + nums[i]);
+                    i++;
+                    synchronized (lock) {
+                        currPrintThread = 2;
+                        lock.notifyAll();
+                    }
+                }
+            }
+        }).start();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (i != nums.length -1) {
+                    synchronized (lock) {
+                        while (currPrintThread == 0 || currPrintThread == 1) {
+                            try {
+                                lock.wait();
+                            } catch (InterruptedException e) {
+                            }
+                        }
+                    }
+
+                    System.out.println("thread 2: " + nums[i]);
+                    i++;
+                    synchronized (lock) {
+                        currPrintThread = 1;
+                        lock.notifyAll();
+                    }
+                }
+            }
+        }).start();
+
+
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 
 
 

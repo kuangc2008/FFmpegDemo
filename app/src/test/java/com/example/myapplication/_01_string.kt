@@ -1,6 +1,10 @@
 package com.example.myapplication
 
 import org.junit.Test
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
+import kotlin.collections.HashSet
 
 
 class _01_string {
@@ -70,13 +74,111 @@ class _01_string {
         arrayListOf1.add(3)
         arrayListOf.add(arrayListOf1)
 
-        val minimumTotal = minimumTotal2(arrayListOf)
-        println(minimumTotal)
+//        val minimumTotal = minimumTotal2(arrayListOf)
+//        println(minimumTotal)
+
+//        val nums = intArrayOf(2,7,9,3,1)
+//        val rob = rob(nums)
+//        println(rob)
+
+
+        val array = arrayOf(
+            intArrayOf(0, 0, 0),
+            intArrayOf(0, 0, 0),
+        )
+
+
+        array.forEach {
+            it.forEach {
+                print("$it, ")
+            }
+        }
+        println()
+
+        floodFill(array,0,0,2)
+
+        array.forEach {
+            it.forEach {
+                print("$it, ")
+            }
+        }
 
     }
 
-    fun rob(nums: IntArray): Int {
 
+    fun floodFill2(image: Array<IntArray>, sr: Int, sc: Int, newColor: Int): Array<IntArray> {
+
+        if (image.isEmpty() || image[0].isEmpty()) {
+            return image
+        }
+        val oldColor = image[sr][sc]
+        if (oldColor == newColor) {
+            return image
+        }
+
+
+        val stack = LinkedList<Pair<Int,Int>>()
+        stack.push(Pair<Int,Int>(sr, sc))
+
+        while (!stack.isEmpty()) {
+            val popItem = stack.pop()
+
+//            if (currColor != newColor && currColor == oldColor) {
+//
+//            }
+        }
+        return image
+    }
+
+
+    fun floodFill(image: Array<IntArray>, sr: Int, sc: Int, newColor: Int): Array<IntArray> {
+        if (image.isEmpty() || image[0].isEmpty()) {
+            return image
+        }
+
+        val oldColor = image[sr][sc]
+        if (oldColor == newColor) {
+            return image
+        }
+
+        return dfs(image, sr, sc , oldColor, newColor)
+    }
+
+    fun dfs(image: Array<IntArray>, sr: Int, sc : Int, oldColor: Int, newColor: Int): Array<IntArray> {
+        var currColor = image[sr][sc]
+        if (currColor != newColor && currColor == oldColor) {
+            image[sr][sc] = newColor
+
+            for (i in 0 until 4) {
+                if (sc -1 >= 0) {
+                    dfs(image, sr, sc - 1, oldColor, newColor)
+                }
+                if (sc + 1 < image[0].size) {
+                    dfs(image, sr, sc + 1, oldColor, newColor)
+                }
+                if (sr -1 >= 0) {
+                    dfs(image, sr - 1, sc, oldColor, newColor)
+                }
+                if (sr + 1 < image.size) {
+                    dfs(image, sr + 1, sc, oldColor, newColor)
+                }
+            }
+        }
+
+
+        return image
+    }
+
+
+    fun rob(nums: IntArray): Int {
+        val f = IntArray(nums.size)
+        f[0] = nums[0]
+        f[1] = nums[1]
+
+        for (i in 2..nums.lastIndex) {
+            f[i] = Math.max( f[i-2] + nums[i], f[i-1] )
+        }
+        return Math.max(f[f.lastIndex], f[f.lastIndex-1])
     }
 
     fun minimumTotal2(triangle: List<List<Int>>): Int {
