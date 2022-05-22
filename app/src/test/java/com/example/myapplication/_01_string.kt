@@ -2,9 +2,7 @@ package com.example.myapplication
 
 import org.junit.Test
 import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
-import kotlin.collections.HashSet
+import kotlin.io.path.Path
 
 
 class _01_string {
@@ -83,26 +81,264 @@ class _01_string {
 
 
         val array = arrayOf(
-            intArrayOf(0, 0, 0),
-            intArrayOf(0, 0, 0),
+            intArrayOf(0,0,1,0,0,0,0,1,0,0,0,0,0),
+            intArrayOf(0,0,0,0,0,0,0,1,1,1,0,0,0),
+            intArrayOf(0,1,1,0,1,0,0,0,0,0,0,0,0),
+            intArrayOf(0,1,0,0,1,1,0,0,1,0,1,0,0),
+            intArrayOf(0,1,0,0,1,1,0,0,1,1,1,0,0),
+            intArrayOf(0,0,0,0,0,0,0,0,0,0,1,0,0),
         )
 
 
-        array.forEach {
-            it.forEach {
-                print("$it, ")
+        val abc = arrayOfNulls<IntArray>(2)
+
+        abc[0] = IntArray(2)
+
+        val bcd = Array(2) { IntArray(3) }
+
+//        val maxAreaOfIsland = maxAreaOfIsland(array)
+//        println(maxAreaOfIsland)
+
+
+        val first = TreeNode(
+            1,
+            TreeNode(3,  TreeNode(5)),
+            TreeNode(2)
+        )
+
+        val second = TreeNode(
+            2,
+            TreeNode(1,  null, TreeNode(4)),
+            TreeNode(3, null, TreeNode(7))
+        )
+
+//        mergeTrees(first, second)
+
+
+        val array2 = arrayOf(
+            intArrayOf(0, 0 , 0),
+            intArrayOf(0, 1 , 0),
+            intArrayOf(0, 0 , 0),
+        )
+
+//        val orangesRotting = orangesRotting(array2)
+//        println(orangesRotting)
+
+
+        updateMatrix(array2)
+//
+//        val reverseList = reverseList(head)
+    }
+
+    fun containsDuplicate(nums: IntArray): Boolean {
+        val set = hashSetOf<Int>()
+
+        nums.forEach {
+            if (set.contains(it)) {
+                return false
+            }
+            set.add(it)
+        }
+        return true
+    }
+
+
+
+    fun updateMatrix(mat: Array<IntArray>): Array<IntArray> {
+
+        val result = Array<IntArray>( mat.size ) { IntArray(mat[0].size) }
+
+        mat.forEachIndexed{ row, array ->
+            array.forEachIndexed {  column, item ->
+                result[row][column] = dfs(mat, row, column)
             }
         }
-        println()
+        return result
+    }
 
-        floodFill(array,0,0,2)
+    fun dfs(mat : Array<IntArray>, x : Int , y : Int) : Int{
+        if (mat[x][y] == 0 ) {
+            return 0
+        }
 
-        array.forEach {
-            it.forEach {
-                print("$it, ")
+        val dx = intArrayOf(1, -1, 0, 0)
+        val dy = intArrayOf(0, 0, 1, -1)
+
+        var array = LinkedList<Pair<Int, Int>>()
+        var adjustArray = LinkedList<Pair<Int, Int>>()
+
+        array.push( Pair<Int, Int> (x, y) )
+        mat[x][y] = 2
+        var result = 0
+
+        label@ while (!array.isEmpty() || !adjustArray.isEmpty()) {
+            if (array.isEmpty()) {
+                val temp = array
+                array = adjustArray
+                adjustArray = temp
+            }
+            result++
+            mat[x][y] = 2
+
+            val itemPos = array.pop()
+
+            for (i in 0..3) {
+                val x = itemPos.first + dx[i]
+                val y = itemPos.second + dy[i]
+                if (x >= 0 && y>= 0 && x < mat.size && y < mat[0].size) {
+                    if (mat[x][y] == 0) {
+                        break@label
+                    } else if (mat[x][y] == 1) {
+                        adjustArray.push(Pair<Int,Int>(x, y))
+                    }
+                }
             }
         }
 
+        mat.forEachIndexed { row, array ->
+            array.forEachIndexed { column, item ->
+                if (item == 2) {
+                    mat[x][y] = 1
+                }
+            }
+
+        }
+
+        return result
+    }
+
+
+
+    fun reverseList(head: ListNode?): ListNode? {
+        if (head == null || head.next == null) {
+            return head
+        }
+        val next = reverseList(head.next)
+        head?.next?.next = head;
+        head.next = null;
+        return next
+
+    }
+
+    fun orangesRotting(grid: Array<IntArray>): Int {
+        return orangesRottingMy(grid)
+    }
+
+    fun orangesRottingMy(grid: Array<IntArray>): Int {
+        var first = LinkedList<Pair<Int, Int>>()
+        grid.forEachIndexed { row , array ->
+            array.forEachIndexed { colum, item ->
+                if (item == 2) {
+                    first.push( Pair<Int, Int> (row, colum) )
+                }
+            }
+        }
+
+        var next = LinkedList<Pair<Int, Int>>()
+
+        var PathItem = 0
+
+        while (!first.isEmpty() || !next.isEmpty() ) {
+            if (first.isEmpty() && !next.isEmpty()) {
+                val tmp = first
+                first = next
+                next = tmp
+                PathItem++
+            }
+
+            val item =  first.pop()
+            val dx = intArrayOf(1, -1, 0, 0)
+            val dy = intArrayOf (0, 0, 1, -1)
+
+            for (i in 0..3) {
+                val x = item.first + dx[i]
+                val y = item.second + dy[i]
+                if (x >= 0 && y>= 0 && x < grid.size && y < grid[0].size) {
+                    if (grid[x][y] == 1) {
+                        grid[x][y] = 2
+                        next.push(Pair<Int,Int>(x, y))
+                    }
+                }
+            }
+        }
+
+        label@ for (i in 0..grid.lastIndex) {
+            val rowItems = grid[i]
+            for (item in rowItems) {
+                if (item == 1) {
+                    PathItem = -1
+                    break@label
+                }
+            }
+        }
+
+
+        return PathItem
+
+    }
+
+
+    class Node(var data : Int  = 0, var left : Node? = null, var right : Node? = null, var next : Node? = null)
+
+
+    class TreeNode(var data : Int  = 0, var left : TreeNode? = null, var right : TreeNode? = null)
+
+    fun mergeTrees(root1: TreeNode?, root2: TreeNode?): TreeNode? {
+        return  dfs( root1, root2)
+    }
+
+    private fun dfs(root1: TreeNode?, root2: TreeNode?) : TreeNode?{
+        if (root1 == null && root2 == null) {
+            return null
+        }
+
+
+        var result = TreeNode()
+        result.data = (root1?.data ?:0)  +  (root2?.data ?:0)
+        result.left = dfs (root1?.left, root2?.left)
+        result.right = dfs (root1?.right, root2?.right)
+        return result
+    }
+
+
+    fun maxAreaOfIsland(grid: Array<IntArray>): Int {
+        var maxIsland = 0
+
+        grid.forEachIndexed {row, array ->
+            array.forEachIndexed { column, item ->
+                if (item == 1) {
+                    maxIsland = Math.max( maxIsland, searchIsland(grid, row, column, column))
+                }
+
+            }
+        }
+
+        grid.forEachIndexed { row, array ->
+            array.forEachIndexed { column, item ->
+                if (item == 2) {
+                    grid[row][column] = 1
+                }
+            }
+        }
+
+        return maxIsland
+    }
+
+    fun searchIsland(grid: Array<IntArray>, row : Int, column : Int, startColumn : Int) : Int{
+        if (row < 0 || column < 0 || row >= grid.size || column >= grid[0].size) {
+            return 0
+        }
+        var count = 0
+
+        if (grid[row][column] == 1) {
+            count++
+            grid[row][column] = 2
+            count += searchIsland(grid, row , column -1, startColumn)
+            count += searchIsland(grid, row , column + 1, startColumn)
+            count += searchIsland(grid, row + 1, column, startColumn)
+            count += searchIsland(grid, row - 1, column, startColumn)
+        }
+        return count
     }
 
 
@@ -122,10 +358,23 @@ class _01_string {
 
         while (!stack.isEmpty()) {
             val popItem = stack.pop()
+            image[popItem.first][popItem.second] = newColor
 
-//            if (currColor != newColor && currColor == oldColor) {
-//
-//            }
+            var sr = popItem.first
+            var sc = popItem.second
+
+            if (sc -1 >= 0 && image[sr][sc-1] != newColor && image[sr][sc-1] == oldColor) {
+                stack.push(Pair(sr, sc - 1))
+            }
+            if (sc + 1 < image[0].size && image[sr][sc+ 1] != newColor && image[sr][sc+1] == oldColor) {
+                stack.push(Pair(sr, sc + 1))
+            }
+            if (sr -1 >= 0 && image[sr - 1][sc] != newColor && image[sr - 1][sc] == oldColor) {
+                stack.push(Pair(sr - 1, sc))
+            }
+            if (sr + 1 < image.size && image[sr + 1][sc] != newColor && image[sr + 1][sc] == oldColor) {
+                stack.push(Pair(sr + 1, sc))
+            }
         }
         return image
     }

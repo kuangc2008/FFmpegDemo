@@ -16,6 +16,14 @@ public class A {
                 1, 2, 3, 4, 5, 6, 7, 8, 9 , 10
         };
 
+
+        int[][] abc = new int[2][];
+
+        abc[0] = new int[2];
+
+        int[][]  bcd = new int[2][3];
+
+
         new Thread(new Runnable() {
             @Override
             public void run() {
