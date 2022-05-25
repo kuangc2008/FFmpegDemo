@@ -2,7 +2,6 @@ package com.example.myapplication
 
 import org.junit.Test
 import java.util.*
-import kotlin.io.path.Path
 
 
 class _01_string {
@@ -100,11 +99,36 @@ class _01_string {
 //        println(maxAreaOfIsland)
 
 
+//        val first = TreeNode(
+//            5,
+//            TreeNode(4),
+//            TreeNode(6,   TreeNode(3),  TreeNode(7))
+//        )
+//        val first = TreeNode(
+//            2,
+//            TreeNode(1),
+//            TreeNode(3)
+//        )
+
+//        val first = TreeNode(
+//            -10,
+//            TreeNode(9),
+//            TreeNode(20, TreeNode(15), TreeNode(7))
+//        )
+
         val first = TreeNode(
-            1,
-            TreeNode(3,  TreeNode(5)),
-            TreeNode(2)
+            5,
+            TreeNode(4, TreeNode(11, TreeNode(7), TreeNode(2))),
+            TreeNode(8, TreeNode(13), TreeNode(4, null, TreeNode(1)))
         )
+
+
+//        isValidBST(first)
+        val maxPathSum = maxPathSum(first)
+        println(maxPathSum)
+
+
+        var result = IntArray(3)
 
         val second = TreeNode(
             2,
@@ -112,8 +136,29 @@ class _01_string {
             TreeNode(3, null, TreeNode(7))
         )
 
+        val first2 = TreeNode(
+            3,
+            TreeNode(9),
+            TreeNode(20, TreeNode(15), TreeNode(7))
+        )
+
+//        val levelOrder = levelOrder(first2)
+//        levelOrder.forEach {
+//            it.forEach {
+//                print("$it ")
+//            }
+//            println()
+//        }
+
+
 //        mergeTrees(first, second)
 
+
+        val array1 = arrayOf (
+            intArrayOf(1, 2),
+            intArrayOf(3, 4)
+        )
+        val matrixReshape = matrixReshape(array1, 1, 4)
 
         val array2 = arrayOf(
             intArrayOf(0, 0 , 0),
@@ -125,9 +170,187 @@ class _01_string {
 //        println(orangesRotting)
 
 
-        updateMatrix(array2)
+//        updateMatrix(array2)
 //
 //        val reverseList = reverseList(head)
+    }
+
+
+    fun maxPathSum(root: TreeNode?): Int {
+        if (root == null) {
+            return 0
+        }
+
+        var leftSum = root?.`val`
+        if (root?.left != null) {
+            leftSum = maxPathSum(root?.left)
+        }
+
+        var rightSum = root?.`val`
+        if (root?.right != null) {
+            rightSum = maxPathSum(root?.right)
+        }
+        return max(maxPathSumItem(root), leftSum, rightSum)
+    }
+
+    fun maxPathSumItem( root : TreeNode?): Int {
+        if (root == null) {
+            return 0
+        }
+
+        val leftSum = maxPathSumItem(root.left)
+        val rightSum = maxPathSumItem(root.right)
+
+        return max (leftSum + root.`val` , rightSum + root.`val`, root.`val`, leftSum + rightSum + root.`val`)
+    }
+
+    fun max(vararg nums : Int ): Int {
+        var max = nums[0]
+        nums.forEach {
+            if (max < it) {
+                max = it
+            }
+        }
+        return max
+    }
+
+    fun matrixReshape(mat: Array<IntArray>, r: Int, c: Int): Array<IntArray> {
+        if (mat.isEmpty()) {
+            return Array<IntArray>(0) { IntArray(0) }
+        }
+        val size = mat.size * mat[0].size
+        var row = Math.min(size / c, r)
+
+        return Array<IntArray>(row) { rowIndex: Int ->
+            IntArray(c) { index->
+                val count = rowIndex * c + index
+                mat[count/mat[0].size][count%mat[0].size]
+            }
+        }
+
+
+    }
+
+    fun generate(numRows: Int): List<List<Int>> {
+        val list = arrayListOf<List<Int>>()
+        var preRow : List<Int>? = null
+
+        for(i in 1..numRows) {
+            val rows = arrayListOf<Int>()
+
+            for (j in 1..i) {
+                if (j == 1 || j == i) {
+                    rows.add(1)
+                } else {
+                    rows.add ( preRow!![j - 2] + preRow!![j - 1])
+                }
+
+            }
+            list.add(rows)
+            preRow = rows
+        }
+        return list
+    }
+
+//    fun maxPathSum(root: TreeNode?): Int {
+//        return maxPathSumItem(root)
+//    }
+//
+//    fun maxPathSumItem( root : TreeNode?): Int {
+//        if (root == null) {
+//            return 0
+//        }
+//
+//        val leftSum = maxPathSumItem(root.left)
+//        val rightSum = maxPathSumItem(root.right)
+//
+//        return Math.max (leftSum + root.data , rightSum + root.data)
+//    }
+
+    fun isValidBST(root: TreeNode?): Boolean {
+        if (root == null) {
+            return true
+        }
+        if (root.right != null) {
+            var right = root.right
+            while (right != null) {
+                if (right.`val` <= root.`val`) {
+                    return false
+                }
+                right = right.left
+            }
+        }
+
+        if (root.left != null) {
+            var left = root.left
+            while (left != null) {
+                if (left.`val` >= root.`val`) {
+                    return false
+                }
+                left = left.right
+            }
+        }
+        return isValidBST(root?.left) && isValidBST(root?.right)
+
+    }
+
+    fun average(salary: IntArray): Double {
+        if (salary.size <= 2) {
+            return 0.toDouble()
+        }
+
+        var max = salary[0]
+        var min = salary[0]
+        var all = 0
+
+        salary.forEach {
+            if (it > max) {
+                max = it
+            }
+            if (it < min) {
+                min = it
+            }
+            all += it
+        }
+
+        return (all - max -min).toDouble() / (salary.size - 2)
+    }
+
+    fun levelOrder(root: TreeNode?): List<List<Int>> {
+        val result = arrayListOf<ArrayList<Int>>()
+
+        var currCell = LinkedList<TreeNode>()
+        var nextCell = LinkedList<TreeNode>()
+
+        currCell.push(root)
+
+        var cellItem : ArrayList<Int> = arrayListOf()
+
+        while (!currCell.isEmpty() || !nextCell.isEmpty() ) {
+            if (currCell.isEmpty()) {
+                result.add(cellItem)
+                cellItem = arrayListOf<Int>()
+
+                val tmp = currCell
+                currCell = nextCell
+                nextCell = tmp
+            }
+
+            val item = currCell.pop()
+            cellItem.add (item.`val`)
+
+            item?.left?.run {
+                nextCell.offer (this)
+            }
+            item?.right?.run {
+                nextCell.offer (this)
+            }
+
+        }
+        result.add(cellItem)
+
+
+        return result
     }
 
     fun containsDuplicate(nums: IntArray): Boolean {
@@ -281,7 +504,7 @@ class _01_string {
     class Node(var data : Int  = 0, var left : Node? = null, var right : Node? = null, var next : Node? = null)
 
 
-    class TreeNode(var data : Int  = 0, var left : TreeNode? = null, var right : TreeNode? = null)
+    class TreeNode(var `val` : Int  = 0, var left : TreeNode? = null, var right : TreeNode? = null)
 
     fun mergeTrees(root1: TreeNode?, root2: TreeNode?): TreeNode? {
         return  dfs( root1, root2)
@@ -294,7 +517,7 @@ class _01_string {
 
 
         var result = TreeNode()
-        result.data = (root1?.data ?:0)  +  (root2?.data ?:0)
+        result.`val` = (root1?.`val` ?:0)  +  (root2?.`val` ?:0)
         result.left = dfs (root1?.left, root2?.left)
         result.right = dfs (root1?.right, root2?.right)
         return result
