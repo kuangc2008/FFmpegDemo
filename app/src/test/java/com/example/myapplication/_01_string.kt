@@ -150,6 +150,7 @@ class _01_string {
 //            println()
 //        }
 
+//        letterCasePermutation3("a1b2")
 
 //        mergeTrees(first, second)
 
@@ -173,6 +174,291 @@ class _01_string {
 //        updateMatrix(array2)
 //
 //        val reverseList = reverseList(head)
+
+
+//        val a = arrayOf<CharArray>(
+//            charArrayOf('5','3','.','.','7','.','.','.','.'),
+//            charArrayOf('6','.','.','1','9','5','.','.','.'),
+//            charArrayOf('.','9','8','.','.','.','.','6','.'),
+//            charArrayOf('8','.','.','.','6','.','.','.','3'),
+//            charArrayOf('4','.','.','8','.','3','.','.','1'),
+//            charArrayOf('7','.','.','.','2','.','.','.','6'),
+//            charArrayOf('.','6','.','.','.','.','2','8','.'),
+//            charArrayOf('.','.','.','4','1','9','.','.','5'),
+//            charArrayOf('.','.','.','.','8','.','.','7','9'),
+//
+//        )
+//        isValidSudoku(a)
+
+//        val list = mutableListOf<String>()
+//        list.add("leet")
+//        list.add("code")
+//        wordBreak("leetcode", list)
+
+//        val a = intArrayOf(1, 2, 3)
+//        subsets(a)
+//        result55.forEach {
+//            println(it)
+//        }
+
+        val array55 = arrayOf(
+            charArrayOf('A','B','C','E'),
+            charArrayOf('S','F','E','S'),
+            charArrayOf('A','D','E','E')
+        )
+        val exist = exist(array55, "ABCESEEEFS")
+        println(exist)
+    }
+
+
+    fun exist(board: Array<CharArray>, word: String): Boolean {
+        board.forEachIndexed { row, items ->
+            items.forEachIndexed { colum, it ->
+                set.clear()
+                if (dfs(board, word, 0, row, colum)) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    val dx = intArrayOf(1, -1, 0, 0)
+    val dy = intArrayOf(0, 0, 1, -1)
+    val set = hashSetOf<Int>()
+
+    fun dfs(board : Array<CharArray>, word: String, index : Int, row : Int, colum : Int) : Boolean{
+        if (row < 0 || colum < 0 || row >= board.size || colum >= board[0].size) {
+            return false
+        }
+
+        if (word[index] != board[row][colum] || set.contains(row * board[0].size + colum) ) {
+            return false
+        } else {
+            set.add(row * board[0].size + colum)
+
+            if (index == word.length - 1) {
+                return true
+            }
+
+            var result = false
+            for (i in 0..3) {
+                result = result or dfs (board, word, index + 1, row + dx[i], colum + dy[i])
+                if (result) {
+                    return true
+                }
+            }
+
+            set.remove(row * board[0].size + colum)
+
+            return false
+        }
+    }
+
+    val result55 = ArrayList< List<Int> >()
+    fun subsets(nums: IntArray): List<List<Int>> {
+        val path = LinkedList<Int>()
+        backTrace(nums, 0, path)
+        return result55
+    }
+
+    fun backTrace(nums : IntArray, start : Int, path : LinkedList<Int>) {
+        result55.add ( ArrayList(path))
+
+        for (i in start until nums.size) {
+            path.add( nums[i])
+            backTrace(nums, i + 1, path)
+            path.removeLast()
+        }
+    }
+
+    fun wordBreak(s: String, wordDict: List<String>): Boolean {
+        val set = HashSet<String>(wordDict)
+        val dp = BooleanArray(s.length + 1)
+        dp[0] = true
+
+        loop@ for (i in 0 until s.length) {
+            for (j in 0 .. i) {
+                if (dp[j] && set.contains(s.substring(j, i + 1))) {
+                    dp[i + 1] = true
+                    continue@loop
+                }
+            }
+        }
+
+        return dp[dp.lastIndex]
+
+    }
+
+
+
+    fun isValidSudoku(board: Array<CharArray>): Boolean {
+        for (charItems in board) {
+            if (isContains(charItems)) {
+                return false
+            }
+        }
+
+        val columnItems = Array<CharArray>(9) {
+            CharArray(9)
+        }
+
+        val ThreeGridItems = Array<CharArray>(9) {
+            CharArray(9)
+        }
+        board.forEachIndexed { i, array ->
+            array.forEachIndexed { j, item ->
+                columnItems[j][i] = item
+                ThreeGridItems[ j / 3 + 3 * (i / 3)] [ j % 3 + 3 * (i % 3)] = item
+            }
+        }
+
+        for (charItems in columnItems) {
+            if (isContains(charItems)) {
+                return false
+            }
+        }
+
+        for (charItems in ThreeGridItems) {
+            if (isContains(charItems)) {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    fun isContains(items : CharArray) : Boolean  {
+        for (i in items.indices) {
+            if (items[i] == '.') {
+                continue
+            }
+            for (j in (i+ 1)..items.size - 1) {
+                if (items[i] == items[j]) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+
+    val result3 = arrayListOf<String>()
+
+    fun backTrace(s : String, start : Int, tracePah : StringBuilder) {
+        if (start == s.length) {
+            result3.add(tracePah.toString())
+            return
+        }
+
+        for (i in start until  s.length) {
+//            tracePah.append(c)
+
+            backTrace(s, start + 1, tracePah)
+
+            tracePah.deleteCharAt( tracePah.lastIndex )
+        }
+    }
+
+
+    val result2 = arrayListOf<List<Int>>()
+    fun permute(nums: IntArray): List<List<Int>> {
+        val tracePath = LinkedList<Int>()
+        backTrace(nums, tracePath)
+        return result2
+    }
+
+
+    fun backTrace(nums : IntArray, tracePath : LinkedList<Int>) {
+        if (tracePath.size == 3) {
+            result2.add (ArrayList<Int>(tracePath))
+            tracePath.clear()
+            return
+        }
+
+        for (i in 0..nums.size) {
+            if (tracePath.contains(i)) {
+                continue
+            }
+
+            tracePath.add(i)
+
+            backTrace(nums, tracePath)
+
+            tracePath.peek()
+
+            val ThreeGridItems = Array<CharArray>(9) {
+                CharArray(9)
+            }
+        }
+    }
+
+
+    val result4 = arrayListOf<String>()
+
+    fun letterCasePermutation3(s: String): List<String> {
+        val tracePah = StringBuilder()
+
+        backTrace(s, 0, tracePah)
+
+        return result4
+    }
+
+    fun backTrace3(s : String, start : Int, tracePah : StringBuilder) {
+        if (start == s.length) {
+            result4.add(tracePah.toString())
+            return
+        }
+
+
+        var c = s[start]
+        if ((c in 'a'..'z') || (c in 'A'..'Z')) {
+            tracePah.append(c)
+            backTrace3(s, start + 1, tracePah)
+            tracePah.deleteCharAt(tracePah.lastIndex)
+
+            c = if (c in 'a'..'z') {
+                c.toUpperCase()
+            } else {
+                c.toLowerCase()
+            }
+            tracePah.append(c)
+            backTrace3(s, start + 1, tracePah)
+            tracePah.deleteCharAt(tracePah.lastIndex)
+        } else {
+            tracePah.append(c)
+            backTrace3(s, start + 1, tracePah)
+            tracePah.deleteCharAt(tracePah.lastIndex)
+        }
+    }
+
+    val result = arrayListOf<List<Int>>()
+    fun combine(n: Int, k: Int): List<List<Int>> {
+        val list = LinkedList<Int>()
+        backTrace(n , k ,  list )
+
+        var c = 'a'
+        c.toLowerCase()
+        return result
+    }
+
+    fun backTrace ( n : Int, k : Int, list : LinkedList<Int>) {
+        if (k == 0) {
+            result.add (ArrayList(list))
+            return
+        }
+
+        for (i in (k) downTo 1) {
+            if (list.contains(i)) {
+                continue
+            }
+
+            list.add(i)
+
+            backTrace(n , k - 1, list)
+
+            list.removeFirst()
+        }
     }
 
 
@@ -975,7 +1261,7 @@ class _01_string {
     示例 1：
 
     输入：s = "Let's take LeetCode contest"
-    输出："s'teL ekat edoCteeL tsetnoc"
+    输出："s'teL ekat edoCteeL tsetnoc'
 
     来源：力扣（LeetCode）
     链接：https://leetcode.cn/problems/reverse-words-in-a-string-iii

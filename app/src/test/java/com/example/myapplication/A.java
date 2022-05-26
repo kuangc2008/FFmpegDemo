@@ -17,6 +17,7 @@ public class A {
         };
 
 
+
         int[][] abc = new int[2][];
 
         abc[0] = new int[2];
