@@ -206,10 +206,107 @@ class _01_string {
             charArrayOf('S','F','E','S'),
             charArrayOf('A','D','E','E')
         )
-        val exist = exist(array55, "ABCESEEEFS")
-        println(exist)
+//        val exist = exist(array55, "ABCESEEEFS")
+//        println(exist)
+
+
+        val intArrayOf = intArrayOf(186, 419, 83, 408)
+//        val intArrayOf = intArrayOf(1, 2, 5)
+//        val coinChange = coinChange(intArrayOf, 6249)
+//        println(coinChange)
+
+
+        val array66 = intArrayOf(3, 4, 5, 1, 2)
+        val findMin = findMin(array66)
     }
 
+
+
+    fun findMin(nums: IntArray): Int {
+        var start = 0
+        var end = nums.lastIndex
+
+        while (start < end) {
+            if (start + 1 == end) {
+                break
+            }
+            if (nums[start] < nums[end]) {
+                start = (start + end) /2
+            } else {
+                end = (start + end) /2
+            }
+        }
+
+        return Math.min(nums[start], nums[end])
+    }
+
+    fun coinChange(coins: IntArray, amount: Int): Int {
+        coins.sort()
+
+        val path = LinkedList<Int>()
+        val backTrace4 = backTrace4(coins, coins.lastIndex, amount, path)
+
+        return path.size
+    }
+
+    fun backTrace4(coins : IntArray, lastIndex : Int, amount : Int, path : LinkedList<Int>) : Int {
+        if (amount == 0) {
+            return 2
+        }
+        if (lastIndex < 0) {
+            return 0
+        }
+        var amount = amount
+        var i = lastIndex
+        while (i >= 0) {
+            var userIndex = -1
+            for (j in lastIndex downTo  0) {
+                if (amount >= coins[j]) {
+                    userIndex = j
+                    break
+                }
+            }
+
+            if (userIndex >= 0) {
+                path.offerLast(coins[userIndex])
+                amount -= coins[userIndex]
+
+                val backTrace4 = backTrace4(coins, userIndex, amount, path);
+
+                if (backTrace4 == 2) {
+                    return 2
+                } else if (backTrace4 == 1) {
+                    backTrace4(coins, userIndex - 1, amount, path);
+                    i = userIndex - 1
+                }
+
+                path.pollLast()
+                amount +=  coins[userIndex]
+            } else {
+                backTrace4(coins, userIndex - 1, amount, path)
+                i = userIndex - 1
+            }
+        }
+        return 0
+    }
+
+    fun isValid(s: String): Boolean {
+        val chars = LinkedList<Char>()
+
+        for (c in s) {
+            if (c == '(' || c == '{' || c == '[') {
+                chars.offerLast(c)
+            } else {
+                val stackC = chars.pollLast()
+                when {
+                    c == ')' && stackC != '(' -> return false
+                    c == '}' && stackC != '{' -> return false
+                    c == ']' && stackC != '[' -> return false
+                }
+            }
+        }
+        return chars.isEmpty()
+    }
 
     fun exist(board: Array<CharArray>, word: String): Boolean {
         board.forEachIndexed { row, items ->
