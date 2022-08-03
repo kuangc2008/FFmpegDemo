@@ -4,10 +4,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import com.example.myapplication.databinding.ActivityMainBinding
+import com.example.myapplication.download.DownloadMmg
 import com.kc.java_native_call.NativeLib
-import com.kc.uiwatch.UiWatcher
-import coroutine.CoroutineTest1
-import coroutine.CoroutineTest2
 
 class MainActivity : AppCompatActivity() {
 
@@ -34,6 +32,7 @@ class MainActivity : AppCompatActivity() {
         Log.i("kcc", "2222");
 
 
+        DownloadMmg.downnload(this, "c.jpeg")
 
 //        CoroutineTest2().main()
 //

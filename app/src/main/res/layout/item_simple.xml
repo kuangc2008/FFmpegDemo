@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<LinearLayout android:layout_width="match_parent"
+<com.example.myapplication.view.ALinearLayout android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
@@ -22,12 +22,12 @@
     <FrameLayout
         android:id="@+id/item"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:background="#FFF"
         android:foreground="?selectableItemBackgroundBorderless">
 
-        <TextView
+        <com.example.myapplication.view.ATV
             tools:text="2"
             android:id="@+id/tv_simple"
             android:gravity="center"
@@ -36,4 +36,4 @@
 
     </FrameLayout>
 
-</LinearLayout>
+</com.example.myapplication.view.ALinearLayout>

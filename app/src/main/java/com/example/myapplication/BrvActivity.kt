@@ -8,6 +8,8 @@ import com.drake.tooltip.toast
 import com.example.myapplication.rv.model.SimpleModel
 import com.github.kc.brv.util.linear
 import com.github.kc.brv.util.setup
+import java.util.*
+import kotlin.text.StringBuilder
 
 class BrvActivity : AppCompatActivity() {
     private lateinit var rv : RecyclerView
@@ -22,7 +24,20 @@ class BrvActivity : AppCompatActivity() {
         rv.linear().setup {
             addType<SimpleModel>(R.layout.item_simple)
             onBind {
-                findView<TextView>(R.id.tv_simple).text = getModel<SimpleModel>().name
+
+//                val nextInt = Random().nextInt(1000)
+                var value : StringBuilder = StringBuilder()
+//                for (i in 0..nextInt) {
+//                    value.append()
+//                }
+
+                val name = getModel<SimpleModel>().name
+                val toInt = name.toInt()
+                for (i in 0..toInt) {
+                    value.append(name)
+                }
+
+                findView<TextView>(R.id.tv_simple).text = value.toString()
             }
             R.id.tv_simple.onClick {
                 toast("点击文本")
@@ -32,7 +47,7 @@ class BrvActivity : AppCompatActivity() {
 
     private fun getData() : MutableList<Any> {
         return mutableListOf<Any>().apply {
-            for (i in 0..9) {
+            for (i in 0..1000) {
                 add(SimpleModel(i.toString()))
             }
         }
